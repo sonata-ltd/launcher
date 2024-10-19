@@ -1,8 +1,8 @@
 import { JSX, Reactive, effect, ref } from "hywer/jsx-runtime";
 import css from './selectionArea.module.less';
-import Button from "../buttons/buttons";
+import Button from "../buttons/Buttons";
 import { For, Svg } from "hywer/x/html";
-import Input from "../input/input";
+import Input from "../input/Input";
 import Search from "./search";
 
 
@@ -25,8 +25,6 @@ export function SelectionArea(props: ISelectionArea) {
         if(/^\s/.test(input.value)) input.value = '';
 
         searchQuery.val = input.value
-
-        console.log(input.value.length)
     }
 
     return (
@@ -34,7 +32,7 @@ export function SelectionArea(props: ISelectionArea) {
             <div className={css.Name}>
                 <p className="Inter-Display-Medium">{props.name}</p>
                 {
-                    props.searchBar && <Input id="searchVersions" name="" onInput={onInputQuery} />
+                    props.searchBar && <Input id="searchVersions" name="" onInput={onInputQuery} expand={true} />
                 }
             </div>
             {
@@ -81,7 +79,7 @@ export function SelectionItem(props: ISelectionItem) {
     }
 
     return (
-        <button 
+        <button
             className={props.selected && props.selected == true ? css.SelectedButton : ""}
             onClick={asd}
             id={props.id}

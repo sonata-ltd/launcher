@@ -30,7 +30,7 @@
     &.primary {
         background-color: @btn-primary-bg;
         color: @btn-primary-text;
-        filter: @btn-primary-shadow;
+        box-shadow: @btn-primary-shadow;
 
         /* --squircle-fill: #007AFF; */
 
@@ -39,11 +39,48 @@
         }
 
         &:hover {
-            filter: @btn-primary-shadow-hover;
+            box-shadow: @btn-primary-shadow-hover;
+        }
+    }
+
+    &.disabled {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.17) 0%, rgba(255, 255, 255, 0) 100%), #f2f2f2;
+        box-shadow: none;
+        color: rgba(0, 0, 0, 0.25);
+        cursor: default;
+
+        &:active {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.17) 0%, rgba(255, 255, 255, 0) 100%), #f2f2f2;
+            scale: 1;
+        }
+
+        &:hover {
+            box-shadow: none;
         }
     }
 
     &:focus-visible {
         .anim-focus;
     }
+}
+
+
+.InstanceCardButton {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    font-size: 18px;
+    font-weight: 550;
+    padding: 10px 20px;
+    border-radius: 10px;
+
+    gap: 5px;
+
+    background: linear-gradient(0deg, rgba(246, 246, 246, 0.84), rgba(246, 246, 246, 0.84));
+    background-blend-mode: normal, plus-lighter;
+    box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.25), 0px 0px 9px rgba(0, 0, 0, 0.2), inset 0px 0px 1px rgba(255, 255, 255, 0.1);
+    border: none;
+    cursor: pointer;
 }

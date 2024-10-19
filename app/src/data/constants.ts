@@ -6,6 +6,7 @@ class Constants {
         createRoot: "init/root",
         versionsManifest: "instance/download_versions",
         createInstance: "instance/create",
+        listInstance: "instance/list",
     }
 }
 

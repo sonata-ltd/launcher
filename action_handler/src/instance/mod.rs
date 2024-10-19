@@ -6,10 +6,10 @@ use std::fs::OpenOptions;
 // use home::env::OS_ENV;
 use home::home_dir;
 use std::io::ErrorKind;
-use async_std::fs::create_dir_all;
+use std::fs::create_dir_all;
 
 pub mod download;
-use async_std::{fs::File, io::WriteExt};
+use async_std::{fs::File, io::WriteExt, fs::create_dir};
 use download::libs;
 use download::assets;
 use download::manifest;
@@ -17,6 +17,7 @@ use serde_json::json;
 use tide_websockets::WebSocketConnection;
 
 pub mod launch;
+pub mod list;
 
 use crate::types::ws::send_ws_msg;
 use crate::types::ws::InfoMessage;
@@ -24,23 +25,25 @@ use crate::types::ws::ProgressData;
 use crate::types::ws::ProgressMessage;
 use crate::types::ws::ProgressTarget;
 use crate::types::ws::ProgressTargetsList;
-use crate::utils::instances_list;
+use crate::utils::instance_manifest::gen_manifest;
+use crate::utils::instances_list::add_to_registry;
 
 pub struct Paths {
-    root: String,
-    libs: String,
-    assets: String,
-    // instances: String,
-    instance: String,
-    instances_list_file: String,
-    meta: String,
-    metacache_file: String,
+    pub root: String,
+    pub libs: String,
+    pub assets: String,
+    pub instance: String,
+    pub instance_manifest_file: String,
+    pub instances_list_file: String,
+    pub headers: String,
+    pub meta: String,
+    pub metacache_file: String,
 }
 
 pub struct Instance {
-    name: String,
-    url: String,
-    info: HashMap<String, String>,
+    pub name: String,
+    pub url: String,
+    pub info: HashMap<String, String>,
 }
 
 impl Instance {
@@ -59,14 +62,13 @@ impl Instance {
             Err(e) => return Err(e),
         };
 
-        match create_dir_all(&paths.root).await {
+        match create_dir_all(&paths.root) {
             Ok(_) => {
                 println!("Launcher root directory initialized");
 
                 let msg = InfoMessage {
                     message: format!("Root directory initialized successfully"),
                     message_id: format!("creation_root_success"),
-                    message_type: format!("INFO"),
                     timestamp: format!("Current Date"),
                 };
 
@@ -166,85 +168,30 @@ impl Instance {
         assets::download_version_assets(&assets_manifest, &assets_objects_location, ws, &paths).await;
 
         // Initialize instance directory
-        match Self::init_instance_dir(&self.name, &paths).await {
+        match Self::register_instance(&self, &paths).await {
             Ok(_) => {},
             Err(e) => return Err(format!("Failed to initialize instance directory: {}", e))
         };
 
-        launch::launch_instance(verson_manifest, &self.info, &paths).await;
+        // launch::launch_instance(verson_manifest, &self.info, &paths).await;
 
         Ok(format!("asd"))
     }
 
-    async fn init_instance_dir(name: &String, paths: &Paths) -> Result<(), String> {
-        match create_dir_all(&paths.instance).await {
+    async fn register_instance(instance: &Instance, paths: &Paths) -> Result<(), String> {
+        match create_dir(&paths.instance).await {
             Ok(_) => {
                 println!("Created instance dir");
 
-                let instances_list_file = match OpenOptions::new()
-                    .read(true)
-                    .write(false)
-                    .create(false)
-                    .open(&paths.instances_list_file) {
-                    Ok(file) => {
-                        println!("Instances list found");
-                        file
-                    },
-
-                    Err(e) => {
-                        if e.kind() == ErrorKind::NotFound {
-                            match instances_list::recreate(&paths.instances_list_file) {
-                                Ok(_) => {
-                                    match OpenOptions::new()
-                                        .read(true)
-                                        .write(false)
-                                        .create(false)
-                                        .open(&paths.instances_list_file) {
-                                            Ok(file) => file,
-                                            Err(e) => return Err(e.to_string()),
-                                        }
-                                },
-
-                                Err(e) => return Err(format!("Failed to create instances list file: {}", e))
-                            }
-                        } else {
-                            return Err(format!("Failed to open instances list file: {}", e));
-                        }
-                    }
+                match add_to_registry(&instance.name, &paths) {
+                    Ok(_) => {},
+                    Err(e) => return Err(e),
                 };
 
-                let mut instances_list: serde_json::Value = serde_json::from_reader(&instances_list_file).unwrap();
-
-                if let Some(groups) = instances_list["groups"].as_object_mut() {
-                    if let Some(vanilla_item) = groups.get_mut("Vanilla") {
-                        if let Some(vanilla) = vanilla_item.as_array_mut() {
-                            for item in vanilla.iter() {
-                                println!("{:#?}", item.get("name"));
-                                if let Some(item_name) = item.get("name") {
-                                    if item_name == name {
-                                        println!("Existing item found");
-                                        return Ok(());
-                                    }
-                                }
-                            }
-
-                            vanilla.push(json!({
-                                "name": name,
-                                "path": paths.instance,
-                            }));
-                        }
-                    } else {
-                        groups.insert("Vanilla".to_string(), json!([{
-                            "name": name,
-                            "path": paths.instance,
-                        }]));
-                    }
-
-                    let mut instances_list_file = File::create(&paths.instances_list_file).await.unwrap();
-                    instances_list_file.write_all(serde_json::to_string_pretty(&instances_list).unwrap().as_bytes()).await.unwrap();
-                } else {
-                    return Err(format!("\"groups\" object not found in instances list file."));
-                }
+                match gen_manifest(&instance, &paths) {
+                    Ok(_) => {},
+                    Err(e) => return Err(e),
+                };
 
                 Ok(())
             },
@@ -255,7 +202,7 @@ impl Instance {
     }
 }
 
-// Returnes Libs path, Assets path, Instances path
+// Return Libs path, Assets path, Instances path
 fn get_required_paths(instance_name: &String) -> Result<Paths, String> {
     let root = match home_dir() {
         Some(path) => {
@@ -268,9 +215,10 @@ fn get_required_paths(instance_name: &String) -> Result<Paths, String> {
         root: root.to_string(),
         libs: format!("{}/libraries", root),
         assets: format!("{}/assets", root),
-        // instances: format!("{}/instances", root),
         instance: format!("{}/instances/{}", root, instance_name),
-        instances_list_file: format!("{}/instances/instances_list.json", root),
+        instance_manifest_file: format!("{}/headers/{}.json", root, instance_name),
+        instances_list_file: format!("{}/headers/main.json", root),
+        headers: format!("{}/headers", root),
         meta: format!("{}/meta", root),
         metacache_file: format!("{}/metacache.json", root),
     })

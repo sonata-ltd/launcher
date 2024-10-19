@@ -1,7 +1,6 @@
-import NewsList from "@/ui/widgets/NewsList/NewsList";
-import Instances from "@/ui/pages/Instances/instances";
-import OldInstances from "@/ui/widgets/Instaces/instances";
-import UIKitDebug from "@/ui/pages/UIKitDebug/uikitdebug";
+import NewsList from "@/ui/widgets/newsList/NewsList";
+import Instances from "@/ui/pages/Instances/Instances";
+import UIKitDebug from "@/ui/pages/UIKitDebug/UIKitDebug";
 
 export const routeNames = {
     root: "/",
@@ -11,5 +10,6 @@ export const routeNames = {
 
 export const routes = {
     [routeNames.root]: () => <NewsList />,
-    [routeNames.instances]: () => <OldInstances />
+    [routeNames.instances]: () => <Instances />,
+    [routeNames.uidebug]: () => <UIKitDebug />
 }

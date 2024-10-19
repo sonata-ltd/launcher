@@ -22,7 +22,7 @@ cd action_handler && cargo run build
 #### Action Handler
 - [ ] Logger implementation
 - [x] Different Java versions downloader
-  - [x] Comapre every Java downloaded path
+  - [x] Compare every Java downloaded path
   - [ ] Endpoint for Java download
   - [ ] WebSockets integration
 - [x] Home directory handling
@@ -34,19 +34,31 @@ cd action_handler && cargo run build
 	- [x] Instance directory initialization
  		- [x] Refactor `init_instance_dir` function
 	- [x] Installed instances storing implementation in JSON
+	- [ ] Async file system scan and files comparing implementation
+	   - [ ] Check existing instance names
 - [ ] Endpoint for sending required authenticated account
 	- [ ] Storing authenticated accounts
 #### Frontend
-- [ ] Refactor WebSocket messages types
+- [ ] Refactor WebSocket message types
 - [ ] Instance download manager with WebSockets integration
   - [ ] Switching between percentage and elapsed downloading time
-	- [ ] Correct `Cancel` button handling
+  - [ ] Correct `Cancel` button handling
+  - [ ] Errors handling on download attempt
+  - [ ] Fix scroll problem on window resizing
 - [ ] Tasks widget on headerbar
 	- [ ] Storage of minimized windows
 - [ ] Retrieving installed instances
 	- [ ] Reusable grid display component
 - [ ] Account authentication
 - [ ] Refactor localization store
+- [ ] Icon Browser
+    - [ ] Import icons from system file picker
+- [ ] File system scan indication
+    - [ ] Different states
+        - [ ] Awaiting launch
+        - [ ] Running
+        - [ ] Finish: problems detected or not
+    - [ ] Problem resolution
 
 ## Application Architecture
 ![Application Architecture Map](./Application%20Architecture.png)

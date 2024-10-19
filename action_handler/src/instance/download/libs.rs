@@ -155,7 +155,13 @@ struct LibInfo {
     name: String,
     path: String,
 }
-async fn download_missing_libs<'a>(version_libs: HashMap<&str, (String, String, &str)>, paths: &'a Paths, ws: &WebSocketConnection) -> Result<Vec<String>, String> {
+
+async fn download_missing_libs<'a>
+(
+    version_libs: HashMap<&str, (String, String, &str)>,
+    paths: &'a Paths,
+    ws: &WebSocketConnection
+) -> Result<Vec<String>, String> {
     let metacache_file = OpenOptions::new()
                             .read(true)
                             .write(true)

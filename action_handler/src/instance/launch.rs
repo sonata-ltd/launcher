@@ -35,7 +35,7 @@ pub async fn launch_instance(manifest: serde_json::Value, info: &HashMap<String,
     println!("{:#?}", args);
 
     // Command execution
-    let output = Command::new("/Users/quartix/Library/Application Support/tlauncher/mojang_jre/jre-legacy/mac-os/jre-legacy/jre.bundle/Contents/Home/bin/java")
+    let output = Command::new("/opt/homebrew/Cellar/openjdk@21/21.0.4/bin/java")
         .args(args)
         .output()
         .await
@@ -72,7 +72,7 @@ async fn define_launch_args(manifest: serde_json::Value, info: &HashMap<String, 
 
     // tmp_args.append(&mut jvm_args);
 
-    // tmp_args.push("-XstartOnFirstThread".to_string());
+    tmp_args.push("-XstartOnFirstThread".to_string());
     tmp_args.push("-Djava.library.path=".to_owned() + r"/Users/quartix/Library/Application Support/minecraft/versions/1.7.4/natives");
     // tmp_args.push("-Djna.tmpdir=".to_owned() + natives_dir);
     // tmp_args.push("-Dorg.lwjgl.system.SharedLibraryExtractPath=".to_owned() + natives_dir);

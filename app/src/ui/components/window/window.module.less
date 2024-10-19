@@ -14,7 +14,7 @@
     border-radius: 14px;
     background: white;
 
-    position: absolute;
+    position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
@@ -22,6 +22,10 @@
     margin: auto;
 
     height: fit-content;
+
+    opacity: 0;
+    scale: 1.1;
+    z-index: 1;
 
 
     .WindowHeader {
@@ -35,7 +39,7 @@
 
         position: sticky;
         top: 0;
-        z-index: 1;
+        /* z-index: 1; */
         background: white;
 
         .Name {
@@ -60,7 +64,7 @@
             padding: 0px 15px;
             gap: 10px;
 
-            width: 42px;
+            /* width: 42px; */
             height: 100%;
 
             .Minimize, .Maximize {
@@ -122,7 +126,7 @@
                     order: 2;
                     flex-grow: 0;
 
-                    &>* {
+                    &.expand > * {
                         width: 100%;
                     }
                 }
@@ -130,12 +134,18 @@
         }
     }
 
+    .VerticalStack {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
     .WindowControls {
         display: flex;
         flex-direction: row;
         justify-content: flex-end;
         align-items: center;
-        padding: 25px 15px 15px 15px;
+        padding: 15px 15px 15px 15px;
         gap: 10px;
 
         /* Inside auto layout */

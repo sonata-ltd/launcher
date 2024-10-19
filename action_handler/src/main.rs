@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use home::home_dir;
 
 use async_std::stream::StreamExt;
+use instance::list::List;
 use serde_json;
 use tide::Request;
 use tide::prelude::*;
@@ -60,6 +61,7 @@ async fn main() -> tide::Result<()> {
     app.at("/instance/download_versions").get(get_versions);
     // app.at("/instance/create").post(create_instance);
     app.at("/ws/instance/create").get(WebSocket::new(|_req, ws| create_instance_ws(ws)));
+    app.at("/ws/instance/list").get(WebSocket::new(|_req, ws| list_instances_ws(ws)));
 
     app.at("/debug/ws").get(WebSocket::new(|_req, stream| debug_ws(stream)));
 
@@ -109,6 +111,8 @@ async fn create_instance_ws(mut ws: WebSocketConnection) -> tide::Result<()> {
 
         let InstanceRequest { name, url, info } = instance_request;
 
+        println!("{name}");
+
         for (k, v) in info.iter() {
             println!("k: {}, v: {}", k, v);
         }
@@ -123,13 +127,40 @@ async fn create_instance_ws(mut ws: WebSocketConnection) -> tide::Result<()> {
             },
 
             Err(e) => {
+                println!("{e}");
                 response = json!({
-                    "result": format!("Failed to create instance, {}", e)
+                    "result": format!("Failed"),
+                    "error": format!("Failed to create instance, {}", e)
                 });
             }
         }
 
         ws.send_string(format!("{response}")).await?;
+    }
+
+    Ok(())
+}
+
+async fn list_instances_ws(mut ws: WebSocketConnection) -> tide::Result<()> {
+    while let Some(Ok(Message::Text(_input))) = ws.next().await {
+        let list_struct = List::new("/Users/quartix/.sonata/headers/main.json".to_string());
+        println!("Function is running");
+
+        let _result;
+        match List::start_paths_checking(&list_struct, &ws).await {
+            Ok(_) => {
+                _result = json!({
+                    "message": "Scan Completed"
+                })
+            },
+            Err(e) => {
+                _result = json!({
+                    "message": e
+                })
+            }
+        };
+
+        // ws.send_string(format!("{result}")).await?;
     }
 
     Ok(())

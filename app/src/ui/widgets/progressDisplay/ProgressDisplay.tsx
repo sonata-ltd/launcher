@@ -1,6 +1,5 @@
 import TranslationStore from "@/data/localization/store";
 import { ProgressMessage, ProgressMessageFinish, ProgressStatuses, ProgressTargetsList } from "@/data/types";
-import { ProgressBarOptions } from "electron/renderer";
 import { JSX, Reactive, derive, ref } from "hywer/jsx-runtime";
 import css from './style.module.less';
 import localization from '@/data/localization/en.json';

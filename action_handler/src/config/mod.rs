@@ -1,16 +1,15 @@
+use std::path::PathBuf;
+
+use home::home_dir;
+
 struct Config {
-    versions_manifest_url: String,
+    launcher_root_dir: Option<PathBuf>
 }
 
 impl Config {
-    pub fn process_config() {
-        match std::env::var("VERSIONS_MANIFEST_URL") {
-            Ok(val) => {
-                println!("{val}");
-            }
-            Err(e) => {
-                println!("{e}");
-            }
-        };
+    pub fn get_default_values() -> Config {
+        Config {
+            launcher_root_dir: home_dir()
+        }
     }
 }

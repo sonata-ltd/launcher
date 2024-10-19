@@ -15,7 +15,6 @@ pub async fn send_ws_msg(ws: &WebSocketConnection, msg: serde_json::Value) -> Re
 pub struct InfoMessage {
     pub message: String,
     pub message_id: String,
-    pub message_type: String,
     pub timestamp: String,
 }
 
@@ -90,4 +89,33 @@ pub struct ProgressFinishMessage {
 pub struct ProgressFinishData {
     pub stage: String,
     pub status: String,
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ScanMessage {
+    pub message_id: String,
+    pub timestamp: String,
+    pub target: ScanData
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ScanData {
+    pub integrity: ScanIntegrity,
+    pub info: Option<ScanInfo>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ScanIntegrity {
+    pub manifest_path: String,
+    pub manifest_exist: bool,
+    pub instance_path: String,
+    pub instance_exist: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ScanInfo {
+    pub name: String,
+    pub version: String,
+    pub loader: String
 }

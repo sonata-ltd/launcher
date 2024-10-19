@@ -1,0 +1,78 @@
+
+import { wsNames } from "./types";
+
+type MessageHandler = (message: string) => void;
+
+class WSStore {
+    public instanceWS = new WebSocket('ws://127.0.0.1:8080/ws/instance/create');
+
+    private sockets: { [key: string]: WebSocket } = {
+        [wsNames.createInstance]: new WebSocket(wsNames.createInstance),
+        [wsNames.listInstance]: new WebSocket(wsNames.listInstance)
+    };
+
+    private handlers: { [key: string]: MessageHandler[] } = {};
+
+
+    constructor() {
+        for (let socket in this.sockets) {
+            this.wsConnect(this.sockets[socket]);
+        }
+    }
+
+    private wsConnect = async (ws: WebSocket) => {
+        ws.onopen = () => {
+            console.log("WebSocket handler: connected to " + ws.url);
+        }
+
+        ws.onmessage = (e) => {
+            this.handleMessage(ws.url, e.data);
+        }
+
+        ws.onclose = async () => {
+            console.log("Connection died");
+
+            ws = await this.reconnect(ws.url, 500);
+
+            this.wsConnect(ws);
+        }
+    }
+
+    private handleMessage = (url: string, message: string) => {
+        const handlers = this.handlers[url];
+        if (handlers) {
+            handlers.forEach(handler => handler(message));
+        }
+    };
+
+    private reconnect = async (url: string, delay: number) => {
+        return new Promise<WebSocket>((res) => {
+            setTimeout(() => {
+                const newWS = new WebSocket(url);
+
+                newWS.onopen = () => {
+                    console.log("WebSocket reconnected to " + url);
+                    res(newWS);
+                }
+
+                newWS.onclose = () => {
+                    setTimeout(() => res(this.reconnect(url, delay)), delay);
+                }
+            }, delay)
+        })
+    }
+
+    public subscribe = (url: string, handler: MessageHandler) => {
+        if (!this.handlers[url]) {
+            this.handlers[url] = [];
+        }
+        this.handlers[url].push(handler);
+    }
+
+    public getSocket = (url: string): WebSocket | undefined => {
+        return this.sockets[url];
+    }
+}
+
+const WSStoreInstance = new WSStore;
+export default WSStoreInstance;

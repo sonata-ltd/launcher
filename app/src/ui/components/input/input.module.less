@@ -28,7 +28,6 @@
         background: #FBFBFB;
         border: 2px solid #EBEBEB;
 
-        width: 100%;
         // width: 210px;
         height: 35px;
 
@@ -36,6 +35,10 @@
         border-radius: 11px;
 
         transition: box-shadow 0.15s, border 0.15s;
+
+        &.expand {
+            width: 100%;
+        }
     }
 
     input:focus {

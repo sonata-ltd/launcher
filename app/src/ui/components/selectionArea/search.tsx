@@ -1,5 +1,5 @@
 import { For } from "hywer/x/html"
-import { SelectionItem } from "./selectionArea"
+import { SelectionItem } from "./SelectionArea"
 import { Reactive } from "hywer/jsx-runtime";
 import Store from '@/data/store';
 import css from './selectionArea.module.less';
