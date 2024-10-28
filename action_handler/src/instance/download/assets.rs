@@ -11,7 +11,7 @@ use crate::{instance::Paths, types::ws::{send_ws_msg, ProgressData, ProgressMess
 use super::manifest::is_array_exists;
 
 
-pub async fn download_version_assets<'a>(manifest: &serde_json::Value, assets_path: &'a str, ws: &WebSocketConnection, paths: &Paths) {
+pub async fn sync_assets<'a>(manifest: &serde_json::Value, assets_path: &'a str, ws: &WebSocketConnection, paths: &Paths) {
     extract_manifest_assets(manifest, assets_path, ws, paths).await;
     println!("Asset extraction completed");
     // ws.send_string(format!("Assets downloaded")).await;
@@ -168,7 +168,7 @@ async fn download_asset(base_url: &str, asset_hash: &str, asset_name: &str, path
             async_std::io::copy(&mut response, &mut file).await.unwrap();
 
             Ok(AssetInfo { name: asset_name.to_string(), hash: asset_hash.to_string() })
-        }, 
+        },
         Err(e) => {
             println!("{e}");
             Err(e.to_string())

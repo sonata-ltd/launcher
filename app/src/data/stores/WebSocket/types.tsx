@@ -1,4 +1,5 @@
 export const wsNames = {
-    createInstance: 'ws://127.0.0.1:8080/ws/instance/create',
+    initInstance: 'ws://127.0.0.1:8080/ws/instance/init',
+    runInstance: 'ws://127.0.0.1:8080/ws/instance/run',
     listInstance: 'ws://127.0.0.1:8080/ws/instance/list',
 }

@@ -15,6 +15,7 @@ import { wsNames } from '@/data/stores/WebSocket/types';
 import { InstanceGrid, InstanceGridChildren } from '@/ui/components/grid/Grid';
 import { ScanProgress } from '@/ui/widgets/scanProgress/ScanProgress';
 import ScanStoreInstance from '@/data/stores/Instance/store';
+import { CheckedScanData } from '@/data/stores/Instance/types';
 
 
 const Instances = () => {
@@ -66,11 +67,7 @@ const Instances = () => {
 
     CreateWindowInstance.contentStackIndex.sub = (val) => {
         if (val === contentStackStates.ProgressDisplay) {
-            const ws = WSStoreInstance.getSocket(wsNames.createInstance);
-            if (ws) {
-                console.warn("Trying to launch...");
-                CreateWindowInstance.requestVersionDownload(ws);
-            }
+            CreateWindowInstance.requestVersionDownload();
         }
     }
 
@@ -80,6 +77,10 @@ const Instances = () => {
         } else {
             CreateWindowInstance.previousWindow();
         }
+    }
+
+    const handleInstanceLaunch = (name: string, url: string) => {
+        CreateWindowInstance.requestInstanceLaunch(name);
     }
 
     const openImageBrowser = () => {
@@ -92,7 +93,7 @@ const Instances = () => {
     const windowImageBrowser = ref(false);
 
     setTimeout(() => {
-        WSStoreInstance.subscribe(wsNames.createInstance, (data) => {
+        WSStoreInstance.subscribe(wsNames.initInstance, (data) => {
             const msg = JSON.parse(data);
             console.log(msg);
 
@@ -102,10 +103,18 @@ const Instances = () => {
                 progressMessage.val = msg as ProgressMessage;
             } else if (msg.error) {
                 console.error(`TODO: Show error message on errors\n${msg.error}`);
+            } else if (msg.message_id === "process_finished") {
+                if (msg.target && msg.target.integrity && msg.target.info) {
+                    let scanDataObject = msg.target as CheckedScanData;
+                    ScanStoreInstance.pushScanData(scanDataObject);
+                }
             }
         })
     })
 
+    ScanStoreInstance.scanData.derive(val => {
+        console.log(val);
+    })
 
     return (
         <>
@@ -114,19 +123,35 @@ const Instances = () => {
                 {
                     ScanStoreInstance.scanData.derive(val => {
                         return Object.entries(val).map(([key, value], index) => (
-                            <InstanceGridChildren name={value.info.name} loader={value.info.loader} version={value.info.version} />
+                            <InstanceGridChildren
+                                name={value.info.name}
+                                loader={value.info.loader}
+                                version={value.info.version}
+                                onClick={() => handleInstanceLaunch(value.info.name)}
+                            />
                         ))
                     })
                 }
-                {/* <InstanceGridChildren name="Snipperly's SMP" loader="Fabric" version="1.20.1" /> */}
             </InstanceGrid>
             <button onClick={() => windowCreationShown.val = true}>Create</button>
-            <ImageBrowser zIndex={1} applyVal={instanceImageUri} shown={windowImageBrowser} />
-            <Window name="Instance Creation" minimize={true} maximize={true} shown={windowCreationShown}>
+            <ImageBrowser
+                zIndex={1}
+                applyVal={instanceImageUri}
+                shown={windowImageBrowser}
+            />
+            <Window
+                name="Instance Creation"
+                minimize={true}
+                maximize={true}
+                shown={windowCreationShown}
+            >
                 <ContentStack showIndex={CreateWindowInstance.contentStackIndex}>
                     <div>
                         <FlexBox>
-                            <DisplayIcon style="width: 141px; height: 141px" onClick={openImageBrowser}>
+                            <DisplayIcon
+                                style="width: 141px; height: 141px"
+                                onClick={openImageBrowser}
+                            >
                                 <img src={instanceImageUri.derive(val => val)} alt="" />
                             </DisplayIcon>
                             <VerticalStack>
@@ -145,7 +170,7 @@ const Instances = () => {
                                         {(item, i) => {
                                             return <SelectionItem
                                                 name={item.id}
-                                                onClick={() => CreateWindowInstance.handleVersionChange(item.id, item.url)}
+                                                onClick={() => CreateWindowInstance.handleVersionChange(item.id, item.url, item.type)}
                                                 selected={CreateWindowInstance.selectedVersionId.val == item.id}
                                             />
                                         }}

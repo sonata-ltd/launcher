@@ -14,7 +14,6 @@ class ScanStore {
    public pushScanData = (data: CheckedScanData) => {
        this.scanData.val.push(data);
        this.scanData.react();
-       console.log(this.scanData.val);
    }
 
     public getScanData = () => {

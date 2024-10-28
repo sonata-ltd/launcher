@@ -30,6 +30,34 @@ class Api {
         })
     }
 
+    public async getVersionManifest(id: string): Promise<JSON> {
+        let body = JSON.stringify({
+           id: id
+        })
+
+        return new Promise<JSON>((res, rej) => {
+            const socket = new WebSocket(Api.url + Constants.endpoints.getVersion);
+
+            socket.onopen = () => {
+                socket.send(body);
+            }
+
+            socket.onmessage = (e) => {
+                const response = JSON.parse(e.data);
+
+                res(response);
+            }
+
+            socket.onerror = (error) => {
+                rej(new Error(`WebSocket Error: ${error}`));
+            };
+
+            socket.onclose = () => {
+                console.log("WebSocket connection closed.");
+            };
+        })
+    }
+
     public async getVersionsManifest(): Promise<JSON> {
       try {
         const response = await tfetch(

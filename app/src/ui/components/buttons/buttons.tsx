@@ -40,15 +40,15 @@ interface IInstanceCardButtonProps {
 export function InstanceCardButton(props: IInstanceCardButtonProps) {
     return (
         <button
-        className={
-            `${css.InstanceCardButton}
-            Inter-Display-Regular`
-        }
-        // style={`z-index: ${props.zIndex ? props.zIndex : 0}`}
-        onClick={props.onClick}
-        id={props.id}
-        onMouseDown={props.onMouseDown}
-        onMouseUp={props.onMouseUp}
+            className={
+                `${css.InstanceCardButton}
+                Inter-Display-Regular`
+            }
+            // style={`z-index: ${props.zIndex ? props.zIndex : 0}`}
+            onClick={props.onClick}
+            id={props.id}
+            onMouseDown={props.onMouseDown}
+            onMouseUp={props.onMouseUp}
         >
             {props.text}
         </button>

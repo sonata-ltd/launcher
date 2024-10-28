@@ -2,7 +2,7 @@ use std::fs::{File, OpenOptions};
 use std::io::{ErrorKind, Write};
 use serde_json::{json, Value};
 
-use crate::instance::{Instance, Paths};
+use crate::instance::{Instance, InstanceInfo, Paths};
 
 
 pub fn recreate(file: &String) -> Result<(File, Value), String> {
@@ -17,7 +17,7 @@ pub fn recreate(file: &String) -> Result<(File, Value), String> {
     }
 }
 
-pub fn gen_manifest(instance: &Instance, paths: &Paths) -> Result<(), String> {
+pub fn gen_manifest<'a>(instance: &Instance, paths: &Paths, instance_info: &InstanceInfo) -> Result<(), String> {
     let instance_manifest_file = match OpenOptions::new()
         .read(true)
         .write(false)
@@ -57,7 +57,7 @@ pub fn gen_manifest(instance: &Instance, paths: &Paths) -> Result<(), String> {
 
     instance_manifest["general"] = json!({
         "name": instance.name,
-        "version": "idk",
+        "version": instance_info.version,
         "loader": "vanilla",
         "playtime": "0"
     });

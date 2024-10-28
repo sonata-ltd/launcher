@@ -1,30 +1,30 @@
 use std::collections::HashMap;
-// use std::env::consts::OS;
-// use std::ffi::OsStr;
-use std::fs::OpenOptions;
-// use chrono::format;
-// use home::env::OS_ENV;
+use download::manifest;
 use home::home_dir;
-use std::io::ErrorKind;
+use serde::Deserialize;
 use std::fs::create_dir_all;
 
 pub mod download;
-use async_std::{fs::File, io::WriteExt, fs::create_dir};
+use async_std::fs::create_dir;
 use download::libs;
 use download::assets;
-use download::manifest;
 use serde_json::json;
 use tide_websockets::WebSocketConnection;
 
 pub mod launch;
 pub mod list;
 
+use crate::messsages::BaseMessage;
 use crate::types::ws::send_ws_msg;
 use crate::types::ws::InfoMessage;
 use crate::types::ws::ProgressData;
 use crate::types::ws::ProgressMessage;
 use crate::types::ws::ProgressTarget;
 use crate::types::ws::ProgressTargetsList;
+use crate::types::ws::ScanData;
+use crate::types::ws::ScanInfo;
+use crate::types::ws::ScanIntegrity;
+use crate::types::ws::ScanMessage;
 use crate::utils::instance_manifest::gen_manifest;
 use crate::utils::instances_list::add_to_registry;
 
@@ -37,17 +37,23 @@ pub struct Paths {
     pub instances_list_file: String,
     pub headers: String,
     pub meta: String,
+    pub version_manifest_file: Option<String>,
     pub metacache_file: String,
 }
 
+pub struct InstanceInfo {
+    pub version: String,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Instance {
     pub name: String,
     pub url: String,
-    pub info: HashMap<String, String>,
+    pub info: Option<HashMap<String, String>>,
 }
 
-impl Instance {
-    pub fn new(name: String, url: String, info: HashMap<String, String>) -> Instance {
+impl<'a> Instance {
+    pub fn new(name: String, url: String, info: Option<HashMap<String, String>>) -> Instance {
         Instance {
             name,
             url,
@@ -55,42 +61,46 @@ impl Instance {
         }
     }
 
-    pub async fn init(&mut self, ws: &WebSocketConnection) -> Result<String, String> {
+    pub async fn init_or_run(&mut self, ws: &WebSocketConnection) -> Result<serde_json::Value, String> {
         // Get default paths
-        let paths = match get_required_paths(&self.name) {
+        let mut paths = match get_required_paths(&self.name) {
             Ok(paths) => paths,
             Err(e) => return Err(e),
         };
 
-        match create_dir_all(&paths.root) {
-            Ok(_) => {
-                println!("Launcher root directory initialized");
+        // TODO: Move to external function
+        // match create_dir_all(&paths.root) {
+        //     Ok(_) => {
+        //         println!("Launcher root directory initialized");
 
-                let msg = InfoMessage {
-                    message: format!("Root directory initialized successfully"),
-                    message_id: format!("creation_root_success"),
-                    timestamp: format!("Current Date"),
-                };
+        //         let msg = InfoMessage {
+        //             message: format!("Root directory initialized successfully"),
+        //             message_id: format!("creation_root_success"),
+        //             timestamp: format!("Current Date"),
+        //         };
 
-                if let Err(e) = send_ws_msg(ws, json!(msg)).await {
-                    println!("Error occured: {}", e);
-                    return Err(e);
-                }
-            },
-            Err(e) => {
-                return Err(format!("{}", e));
-            },
-        };
+        //         if let Err(e) = send_ws_msg(ws, json!(msg)).await {
+        //             println!("Error occured: {}", e);
+        //             return Err(e);
+        //         }
+        //     },
+        //     Err(e) => {
+        //         return Err(format!("{}", e));
+        //     },
+        // };
 
-        self.info.entry("${game_directory}".to_string()).or_insert_with(|| paths.instance.to_string());
-        self.info.entry("${assets_root}".to_string()).or_insert_with(|| paths.assets.to_string());
-        self.info.entry("${user_properties}".to_string()).or_insert_with(|| "{}".to_string());
+        // Update launch args if info is not None
+        self.update_info("${game_directory}", paths.instance.to_string());
+        self.update_info("${assets_root}", paths.assets.to_string());
+        self.update_info("${user_properties}", "{}".to_string());
+
 
         // Send stages list
-        let mut list: Vec<String> = Vec::new();
-        list.push("fetch_manifest".to_string());
-        list.push("download_libs".to_string());
-        list.push("download_assets".to_string());
+        let list: Vec<String> = vec![
+            "fetch_manifest".to_string(),
+            "download_libs".to_string(),
+            "download_assets".to_string()
+        ];
 
         let msg = ProgressTargetsList {
             message_id: format!("progress_targets_list_transfer"),
@@ -101,14 +111,15 @@ impl Instance {
 
         if let Err(e) = send_ws_msg(ws, json!(msg)).await {
             println!("Error occured: {}", e);
-            return Err(e);
+            return Err(e.to_string());
         }
 
 
-        // Get minecraft version manifest
-        let verson_manifest: serde_json::Value;
-        match manifest::download_manifest(&self.url, &paths.meta).await {
-            Ok(data) => {
+        // Get minecraft version manifest - Stage 1
+        // TODO: Find already downloaded manifest and redownload
+        // it if outdated
+        let version_manifest = match manifest::download_manifest(&self.url, &paths.meta).await {
+            Ok((data, path_to_manifest)) => {
                 let msg = ProgressMessage {
                     message_id: format!("stage_complete"),
                     timestamp: format!("Current Date"),
@@ -131,13 +142,17 @@ impl Instance {
                     return Err(e);
                 }
 
-                verson_manifest = data
+                // Update info in Paths structure for instance manifest generation
+                paths.version_manifest_file = path_to_manifest;
+
+                data
             },
             Err(e) => return Err(format!("Failed to download version manifest: {}", e))
-        }
+        };
 
-        // Download all libs needed by this version
-        match libs::download_version_libs(&verson_manifest, &paths, &ws).await {
+
+        // Sync & download all libs needed by this version - Stage 2
+        match libs::sync_libs(&version_manifest, &paths, &ws).await {
             Ok((dir, paths)) => {
                 let mut paths_string = String::new();
 
@@ -145,40 +160,95 @@ impl Instance {
                     paths_string.push_str(&path);
                 }
 
-                self.info.insert("${libs_directory}".to_string(), dir.to_string());
-                self.info.insert("${classpath_libs_directories}".to_string(), paths_string);
+                // Update launch args if info is not None
+                self.update_info("${libs_directory}", dir.to_string());
+                self.update_info("${classpath_libs_directories}", paths_string);
             },
             Err(e) => return Err(format!("Failed to download and register libs: {e}"))
         };
 
-        println!("Libs downloaded");
 
         // Get version assets manifest
         let assets_manifest_location = paths.assets.to_owned() + "/indexes";
-        let assets_manifest = match manifest::get_assets_manifest(&verson_manifest, &assets_manifest_location).await {
+        println!("{}", version_manifest);
+        let assets_manifest = match manifest::get_assets_manifest(&version_manifest, &assets_manifest_location).await {
             Ok((data, id)) => {
-                self.info.insert("${assets_index_name}".to_string(), id.to_string());
+                self.update_info("${assets_index_name}", id.to_string());
                 data
             },
             Err(e) => return Err(format!("Failed to download assets manifest: {}", e))
         };
 
-        // Download all assets needed by this version
+
+        // Sync & download all assets needed by this version - Stage 3
         let assets_objects_location = paths.assets.to_owned() + "/objects";
-        assets::download_version_assets(&assets_manifest, &assets_objects_location, ws, &paths).await;
+        assets::sync_assets(&assets_manifest, &assets_objects_location, ws, &paths).await;
+
 
         // Initialize instance directory
-        match Self::register_instance(&self, &paths).await {
+        let instance_version = match version_manifest["id"].as_str() {
+            Some(data) => {
+                InstanceInfo {
+                    version: data.to_string(),
+                }
+            },
+            None => return Err("Failed to determine version".to_string())
+        };
+
+        match Self::register_instance(&self, &paths, &instance_version).await {
             Ok(_) => {},
             Err(e) => return Err(format!("Failed to initialize instance directory: {}", e))
         };
 
-        // launch::launch_instance(verson_manifest, &self.info, &paths).await;
 
-        Ok(format!("asd"))
+        // Launch if self.info is not None
+        if let Some(info) = &self.info {
+            launch::launch_instance(version_manifest, info, &paths).await;
+
+            let msg = InfoMessage {
+                message: format!("instance running"),
+                message_id: format!("process_finished"),
+                timestamp: format!("Current Data"),
+            };
+
+            return Ok(json!(msg));
+        } else {
+            let msg = ScanMessage {
+                message_id: format!("process_finished"),
+                timestamp: format!("Current Data"),
+                target: ScanData {
+                    integrity: ScanIntegrity {
+                        manifest_path: paths.instance_manifest_file,
+                        manifest_exist: true,
+                        instance_path : paths.instance,
+                        instance_exist: true,
+                    },
+                    info: Some(ScanInfo {
+                        name: format!("{}", self.name),
+                        version: format!("asd"),
+                        loader: format!("vanilla")
+                    })
+                }
+            };
+
+            return Ok(json!(msg));
+        }
     }
 
-    async fn register_instance(instance: &Instance, paths: &Paths) -> Result<(), String> {
+
+    fn update_info(&mut self, k: &'a str, v: String) {
+        if let Some(info_map) = &mut self.info {
+            info_map.insert(k.to_string(), v);
+        }
+    }
+
+    async fn register_instance
+    (
+        instance: &Instance,
+        paths: &Paths,
+        instance_info: &InstanceInfo
+    ) -> Result<(), String>
+    {
         match create_dir(&paths.instance).await {
             Ok(_) => {
                 println!("Created instance dir");
@@ -188,7 +258,7 @@ impl Instance {
                     Err(e) => return Err(e),
                 };
 
-                match gen_manifest(&instance, &paths) {
+                match gen_manifest(&instance, &paths, &instance_info) {
                     Ok(_) => {},
                     Err(e) => return Err(e),
                 };
@@ -220,6 +290,7 @@ fn get_required_paths(instance_name: &String) -> Result<Paths, String> {
         instances_list_file: format!("{}/headers/main.json", root),
         headers: format!("{}/headers", root),
         meta: format!("{}/meta", root),
+        version_manifest_file: None,
         metacache_file: format!("{}/metacache.json", root),
     })
 }

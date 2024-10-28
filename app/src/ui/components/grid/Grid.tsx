@@ -50,7 +50,8 @@ export function InstanceGrid(props: IInstanceGrid) {
 interface IInstanceGridChildren {
     name: string,
     loader: string,
-    version: string
+    version: string,
+    onClick?: () => void
 }
 
 export function InstanceGridChildren(props: IInstanceGridChildren) {
@@ -116,6 +117,7 @@ export function InstanceGridChildren(props: IInstanceGridChildren) {
                         text="Play"
                         zIndex={2}
                         id={buttonId}
+                        onClick={props.onClick}
                         onMouseDown={TriggerButtonPress}
                         onMouseUp={TriggerButtonPress}
                     />

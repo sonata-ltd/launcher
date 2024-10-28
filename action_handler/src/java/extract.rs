@@ -144,11 +144,11 @@ async fn parse_main_manifest
     java: &mut Java
 ) -> Result<
         (Option<(serde_json::Value, Vec<String>)>, Option<String>),
-    String>
+        String>
 {
-    let manifest = match download_in_json(java.manifest_url.to_string()).await {
+    let manifest = match download_in_json(&java.manifest_url).await {
         Ok(data) => data,
-        Err(e) => return Err(e.to_string()),
+        Err(e) => return Err(e),
     };
 
     let osarch = match arch::manifest_osarch() {
@@ -196,7 +196,7 @@ async fn parse_main_manifest
                                 }
                             }
 
-                            match download_in_json(manifest_url.to_string()).await {
+                            match download_in_json(manifest_url).await {
                                 Ok(data) => {
                                     return Ok(
                                         (Some(

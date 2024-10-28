@@ -7,6 +7,7 @@ class Constants {
         versionsManifest: "instance/download_versions",
         createInstance: "instance/create",
         listInstance: "instance/list",
+        getVersion: "ws/instance/get_version"
     }
 }
 

@@ -2,6 +2,8 @@ import { Version, VersionsManifest } from "@/data/types";
 import { ref } from "hywer/jsx-runtime";
 import Api from '@/data/api';
 import Store from '@/data/store';
+import WSStoreInstance from "@/data/stores/WebSocket/store";
+import { wsNames } from "@/data/stores/WebSocket/types";
 
 export enum contentStackStates {
     InstanceDetails,
@@ -30,6 +32,7 @@ class CreateWindow {
     });
 
     public selectedVersionUrl = ref<string>("");
+    public selectedVersionType = ref<string>("");
     public selectedVersionId = ref<string>("");
     public selectedInstanceName = "";
 
@@ -64,18 +67,27 @@ class CreateWindow {
     }
 
 
-    public handleVersionChange = async (id: string, url: string) => {
+    public handleVersionChange = async (id: string, url: string, type: string) => {
         this.selectedVersionId.val = id;
         this.selectedVersionUrl.val = url;
-        console.log(this.selectedVersionId.val);
+        this.selectedVersionType.val = type;
     }
 
 
-    public requestVersionDownload = async (ws: WebSocket) => {
+    public requestVersionDownload = async () => {
+        let body = JSON.stringify({
+            name: this.selectedInstanceName,
+            url: this.selectedVersionUrl.val
+        })
+
+        WSStoreInstance.sendMessage(wsNames.initInstance, body);
+    }
+
+    public requestInstanceLaunch = async (instanceName: string) => {
         const info = new Map<string, string>();
         info.set("${auth_player_name}", "Melicta");
-        info.set("${version_name}", this.selectedVersion.val.id);
-        info.set("${version_type}", this.selectedVersion.val.type);
+        info.set("${version_name}", this.selectedVersionId.val);
+        info.set("${version_type}", this.selectedVersionType.val);
         info.set("${user_type}", "legacy");
         info.set("${auth_uuid}", "99b3e9029022309dae725bb19e275ecb");
         info.set("${auth_access_token}", "[asdasd]");
@@ -86,12 +98,12 @@ class CreateWindow {
         });
 
         let body = JSON.stringify({
-            name: this.selectedInstanceName,
+            name: instanceName,
             url: this.selectedVersionUrl.val,
-            info: infoObject
+            launch_args: infoObject
         })
 
-        ws.send(body);
+        WSStoreInstance.sendMessage(wsNames.initInstance, body);
     }
 }
 

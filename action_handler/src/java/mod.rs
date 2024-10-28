@@ -1,4 +1,4 @@
-use std::{fs::{self, set_permissions}, os::unix::fs::PermissionsExt};
+use std::{fs, os::unix::fs::PermissionsExt};
 
 use async_std::process::Command;
 

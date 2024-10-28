@@ -1,6 +1,6 @@
 use surf;
 
-pub async fn download_in_json(url: String) -> Result<serde_json::Value, String> {
+pub async fn download_in_json<'a>(url: &'a str) -> Result<serde_json::Value, String> {
     match surf::get(url).await {
         Ok(mut response) => {
             match response.body_json::<serde_json::Value>().await {

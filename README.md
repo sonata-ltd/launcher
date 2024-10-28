@@ -25,8 +25,8 @@ cd action_handler && cargo run build
   - [x] Compare every Java downloaded path
   - [ ] Endpoint for Java download
   - [ ] WebSockets integration
-- [x] Home directory handling
 - [ ] Refactor WebSocket messages types
+    - [ ] Return Error type in send_ws_msg function
 - [ ] Implement **natives** folder handling
 - [ ] Separate endpoint for instance launching
 - [ ] Code refactoring in `instance/mod.rs`
@@ -48,7 +48,7 @@ cd action_handler && cargo run build
 - [ ] Tasks widget on headerbar
 	- [ ] Storage of minimized windows
 - [ ] Retrieving installed instances
-	- [ ] Reusable grid display component
+	- [x] Reusable grid display component
 - [ ] Account authentication
 - [ ] Refactor localization store
 - [ ] Icon Browser

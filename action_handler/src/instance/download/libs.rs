@@ -11,7 +11,7 @@ use crate::instance::Paths;
 use crate::types::ws::{send_ws_msg, ProgressData, ProgressMessage, ProgressTarget};
 use crate::utils::metacache;
 
-pub async fn download_version_libs(manifest: &serde_json::Value, paths: &Paths, ws: &WebSocketConnection) -> Result<(String, Vec<String>), String> {
+pub async fn sync_libs(manifest: &serde_json::Value, paths: &Paths, ws: &WebSocketConnection) -> Result<(String, Vec<String>), String> {
     let done_paths = match extract_manifest_libs(manifest, "osx", paths, ws).await {
         Ok(paths) => paths,
         Err(e) => return Err(e),

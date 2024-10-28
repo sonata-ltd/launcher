@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
 use tide_websockets::WebSocketConnection;
 
+
 pub async fn send_ws_msg(ws: &WebSocketConnection, msg: serde_json::Value) -> Result<(), String> {
     // let msg_in_json = serde_json::to_string(&msg).unwrap();
 
@@ -9,6 +10,7 @@ pub async fn send_ws_msg(ws: &WebSocketConnection, msg: serde_json::Value) -> Re
         e.to_string()
     })
 }
+
 
 // Info
 #[derive(Serialize, Deserialize, Debug)]
