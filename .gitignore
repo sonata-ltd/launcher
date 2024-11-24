@@ -14,6 +14,8 @@ dist-ssr
 dist-electron
 release
 *.local
+app2
+app_hywerjs
 
 ## Editor directories and files
 .vscode/*

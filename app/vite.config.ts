@@ -1,16 +1,26 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite';
+
+import solidPlugin from 'vite-plugin-solid';
+import solidSvg from 'vite-plugin-solid-svg';
+// import devtools from 'solid-devtools/vite';
+
+import tsconfigPaths from 'vite-tsconfig-paths';
+
 import path from 'node:path'
 import { resolve } from "node:path"
 
-// https://vitejs.dev/config/
+
 export default defineConfig({
-  esbuild: {
-    jsx: "automatic",
-    jsxImportSource: "hywer",
-  },
-  target: ["esnext"],
-  cssMinify: "lightningcss",
-  minify: "terser",
+  plugins: [
+    /*
+    Uncomment the following line to enable solid-devtools.
+    For more info see https://github.com/thetarnav/solid-devtools/tree/main/packages/extension#readme
+    */
+    // devtools(),
+    solidPlugin(),
+    solidSvg(),
+    tsconfigPaths(),
+  ],
   resolve: {
     alias: {
       "@": resolve(__dirname, "src"),
@@ -18,13 +28,10 @@ export default defineConfig({
       "#root": resolve(__dirname)
     }
   },
-  css: {
-    preprocessorOptions: {
-      less: {
-        paths: [
-          path.resolve(__dirname, "src"),
-        ]
-      },
-    },
+  server: {
+    port: 3000,
   },
-})
+  build: {
+    target: 'esnext',
+  },
+});

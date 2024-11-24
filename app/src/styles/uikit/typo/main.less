@@ -1,0 +1,40 @@
+@import "./elements/separator.less";
+
+@folder-name: "types";
+@mixins: display, text;
+@font-optical-size: 14;
+
+@font-face {
+    font-family: 'Inter';
+    src: url('@/assets/fonts/Inter-VariableFont_opsz,wght.ttf');
+}
+
+.display() {
+    @import ~"./@{folder-name}/display.less";
+}
+
+.text() {
+    @import ~"./@{folder-name}/text.less";
+}
+
+.generate-fonts(@i: length(@mixins)) when (@i > 0) {
+    @mixin: extract(@mixins, @i);
+
+    .mixin-call(@name) when (@name = display) {
+        .display();
+    }
+
+    .mixin-call(@name) when (@name = text) {
+        .text();
+    }
+
+    .mixin-call(@mixin);
+
+    .generate-fonts(@i - 1);
+}
+
+.generate-fonts();
+
+
+/* Generate Headings elements */
+/* @import "./elements/headers.less"; */

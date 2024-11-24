@@ -1,0 +1,43 @@
+/* @import "@/styles/uikit/main.less"; */
+
+@minecraft-new-tag: #AE32E9;
+@name: minecraft;
+
+
+.feed {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+
+    .post {
+        max-width: 892px;
+        display: flex;
+        flex-direction: column;
+        margin: auto;
+
+        user-select: none;
+        -webkit-user-select: none;
+        cursor: default;
+
+        .header {
+            display: flex;
+            gap: 10px;
+
+            /* .av-display-xs-m; */
+
+            .tag {
+                padding: 4px 7px;
+                background-color: @minecraft-new-tag;
+                color: white;
+                font-size: 24px;
+                font-weight: 400;
+                text-transform: capitalize;
+            }
+        }
+
+        .descr {
+            /* .text-md-regular; */
+            color: #535862;
+        }
+    }
+}

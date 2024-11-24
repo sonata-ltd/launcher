@@ -1,31 +1,30 @@
 {
-  "name": "sonata",
-  "private": true,
-  "version": "0.0.1",
+  "name": "vite-template-solid",
+  "version": "0.0.0",
+  "description": "",
   "type": "module",
   "scripts": {
+    "start": "vite",
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "tauri": "tauri"
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.9.1",
+    "less": "^4.2.0",
+    "solid-devtools": "^0.29.2",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.11",
+    "vite-plugin-solid": "^2.8.2",
+    "vite-tsconfig-paths": "^5.1.2"
   },
   "dependencies": {
-    "@tauri-apps/api": "^1.6.0",
-    "hywer": "latest"
-  },
-  "devDependencies": {
-    "@tauri-apps/cli": "^1.6.0",
-    "@types/gsap": "^1.20.2",
-    "auto-text-size": "^0.2.3",
-    "corner-smoothing": "^0.1.5",
-    "figma-squircle": "^0.3.1",
-    "gsap": "^3.12.5",
-    "json-to-css": "^0.1.0",
-    "less": "^4.2.0",
-    "postcss-less": "^6.0.0",
-    "smooth-corners": "^1.0.8",
-    "spring-easing": "^2.3.3",
-    "typescript": "^5.4.5",
-    "vite": "^5.2.12"
+    "@solidjs/router": "^0.15.1",
+    "overlayscrollbars": "^2.10.0",
+    "overlayscrollbars-solid": "^0.5.5",
+    "solid-js": "^1.9.3",
+    "solid-transition-group": "^0.2.3",
+    "vite-plugin-solid-svg": "^0.8.1"
   }
 }

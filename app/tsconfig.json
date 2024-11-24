@@ -1,41 +1,24 @@
 {
-  "includes": [
-    "./src/externals.d.ts"
-  ],
   "compilerOptions": {
-    "types": ["vite/client"],
-
-    // Enable latest features
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "strict": true,
     "target": "ESNext",
     "module": "ESNext",
-    "moduleDetection": "force",
-    "jsx": "react-jsx",
-    "jsxImportSource": "hywer",
-    "allowJs": true,
-
-    // Bundler mode
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
     "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
+    "esModuleInterop": true,
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "types": ["vite/client"],
     "noEmit": true,
-
-    // Best practices
-    "strict": true,
-    "skipLibCheck": true,
-    "noFallthroughCasesInSwitch": true,
-
-    // Some stricter flags (disabled by default)
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false,
-
-    "baseUrl": ".",
+    "isolatedModules": true,
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["./src/*"],
-      "#root/*": ["./*"]
+        "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "electron"]
+    "include": [
+        "src/**/*",
+        "vite.config.ts"
+    ],
 }
