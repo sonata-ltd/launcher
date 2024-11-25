@@ -21,10 +21,13 @@
   },
   "dependencies": {
     "@solidjs/router": "^0.15.1",
+    "motion": "^11.11.17",
     "overlayscrollbars": "^2.10.0",
     "overlayscrollbars-solid": "^0.5.5",
     "solid-js": "^1.9.3",
-    "solid-transition-group": "^0.2.3",
+    "solid-motionone": "^1.0.2",
+    "solid-spring": "^0.0.7",
+    "spring-solid": "^0.0.1",
     "vite-plugin-solid-svg": "^0.8.1"
   }
 }

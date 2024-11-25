@@ -1,4 +1,4 @@
-import { lazy } from "solid-js";
+import { createSignal, lazy } from "solid-js";
 
 
 export const routeNames = {
@@ -9,7 +9,7 @@ export const routeNames = {
     DEBUG_COLORS: "/debug/uikit/colors",
 };
 
-export let routeTabs = [
+export let initialTabs = [
     {
         name: "News",
         path: routeNames.NEWS
