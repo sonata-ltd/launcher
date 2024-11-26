@@ -34,37 +34,71 @@ class AnimationQueue {
 
 class HeaderAnimation {
     private headerMenu: HTMLElement;
-    private headerContainer: HTMLElement;
     private animationQueue: AnimationQueue;
 
-    constructor(headerMenu: HTMLElement, headerContainer: HTMLElement) {
+    // Tab Default Properties
+    private marginLeft = 10;
+    private marginRight = 10;
+    private tabWidth = 100;
+    private tabHeight = 70;
+    private padding = "2px 6px 3px 6px";
+
+    // Animation Properties
+    private animationType = { type: spring, bounce: 0, duration: 0.4 };
+
+    private tabfirstMountTransitionKeys: Record<
+        string,
+        [string | number, string | number]
+    > = {
+        transform: ["translateX(15px)", "translateX(0px)"],
+        opacity: [0, 1]
+    };
+
+    private tabTransitionKeys: Record<
+        string,
+        [string | number, string | number]
+    > = {
+        width: ["0px", `${this.tabWidth}px`],
+        marginLeft: ["0px", `${this.marginLeft}px`],
+        marginRight: ["0px", `${this.marginRight}px`],
+        padding: ["0px 0px 0px 0px", this.padding],
+        transform: ["translateY(-71px)", "translateY(0px)"],
+        opacity: [0, 1],
+        overflow: ["visible", "hidden"],
+    };
+
+
+    constructor(headerMenu: HTMLElement) {
         this.headerMenu = headerMenu;
-        this.headerContainer = headerContainer;
         this.animationQueue = new AnimationQueue();
     }
 
-    private runAnimation = (el: HTMLElement, keyframes: any): Promise<void> => {
-        return new Promise((resolve) => {
-            animate(el, keyframes, {
-                type: spring,
-                bounce: 0.3,
-                duration: 0.8,
-            }).then(() => resolve());
-        });
-    };
+
+    private reverseTransitions(
+        transitions: Record<string, [string | number, string | number]>,
+    ): Record<string, [string | number, string | number]> {
+        return Object.fromEntries(
+            Object.entries(transitions).map(([key, value]) => [
+                key,
+                [value[1], value[0]],
+            ]),
+        );
+    }
+
 
     public animateOnFirstMount = (el: HTMLElement) => {
-        // animate(
-        //     el,
-        //     {
-        //         transform: ["translateX(15px)", "translateX(0px)"],
-        //         opacity: [0, 1],
-        //     },
-        //     { type: spring, bounce: 0.3, duration: 0.8 },
-        // );
+        animate(
+            el,
+            this.tabfirstMountTransitionKeys,
+            this.animationType
+        );
     };
 
     public animateItemRemoval = (removalPath: string, fn: any) => {
+
+        // Adding this animation to the queue
+        // with a new Promise in case you want to
+        // make a delay between animation starts
         this.animationQueue.add(async () => {
             return new Promise((res) => {
                 const el = document.querySelector(
@@ -72,135 +106,27 @@ class HeaderAnimation {
                 );
 
                 if (el) {
-                    const headerMenuChildrens = this.headerMenu.childNodes;
-                    const headerMenuOffset = this.headerMenu.offsetLeft;
-                    const tabsGap = 10;
+                    // Get the reversed values of original animation
+                    const transitionsKeys = this.reverseTransitions(
+                        this.tabTransitionKeys,
+                    );
 
-                    // Get removal element index in header menu
-                    const elIndex = Array.from(headerMenuChildrens).indexOf(el);
+                    animate(el, transitionsKeys, this.animationType).then(
+                        () => {
 
-                    // Get removal element offset
-                    const elWidth = el.offsetWidth;
-                    const totalOffset = elWidth + tabsGap * 2 + tabsGap;
-                    const elOuterWidth =
-                        elWidth * elIndex + tabsGap * 2 * elIndex + tabsGap;
+                            // Execute passed function
+                            // removeTab() in this case or any other
+                            fn();
+                        },
+                    );
 
-                    // Change removal element parent to header menu container
+                    // Execute resolve() before the animation completes.
+                    // This implementation should not break at a
+                    // running the animation very often
                     //
-                    // This is to ensure that the animation of the next element
-                    // and the animation of the header menu itself does
-                    // not shift the deleted element
-                    el.style.position = "absolute";
-                    el.style.marginLeft = `${elOuterWidth}px`;
-
-                    // If the next element is found, an indentation will be applied
-                    // to compensate for the deleted element since it is no longer
-                    // in this container. We don't want to have any sudden
-                    // interface jumps
-                    const nextEl = headerMenuChildrens[elIndex + 1];
-                    if (nextEl) {
-                        const tempMargin = totalOffset;
-                        nextEl.style.marginLeft = `${tempMargin}px`;
-
-                        animate(
-                            nextEl,
-                            {
-                                marginLeft: [`${tempMargin}px`, `${tabsGap}px`],
-                            },
-                            { type: spring, bounce: 0.3, duration: 0.8 },
-                        );
-
-                        animate(
-                            el,
-                            {
-                                marginLeft: [
-                                    `${elOuterWidth}px`,
-                                    `${elOuterWidth - elWidth / 2 - tabsGap}px`,
-                                ],
-                            },
-                            { type: spring, bounce: 0.3, duration: 0.8 },
-                        );
-                    } else {
-                        console.log("Not found");
-                    }
-
-                    animate(el, tabStyles.exit, {
-                        type: spring,
-                        bounce: 0.3,
-                        duration: 0.8,
-                    }).then(() => {
-                        fn();
-                        res();
-                    });
-                } else {
-                    console.warn("Element not found");
-                }
-            })
-        })
-    };
-
-    public animateItemAddition = (path: string, fn: any) => {
-        this.animationQueue.add(async () => {
-            return new Promise((res) => {
-                fn();
-
-                const el: HTMLElement | null = document.querySelector(
-                    `button[data-headertab-path="header-tab:${path}"]`,
-                );
-
-                if (el) {
-                    const headerMenuChildrens = this.headerMenu.childNodes;
-                    const tabsGap = 10;
-
-                    const elIndex = Array.from(headerMenuChildrens).indexOf(el);
-                    const elWidth = el.offsetWidth;
-                    const elOuterWidth =
-                        elWidth * elIndex + tabsGap * 2 * elIndex + tabsGap;
-                    const totalOffset = elWidth + tabsGap * 2 + tabsGap;
-
-                    el.style.position = "absolute";
-                    el.style.marginLeft = `${elOuterWidth}px`;
-
-                    const nextEl = headerMenuChildrens[elIndex + 1];
-
-                    console.log("Animation started");
-                    if (nextEl) {
-                        const tempMargin = totalOffset;
-
-                        animate(
-                            nextEl,
-                            {
-                                marginLeft: [`${tabsGap}px`, `${tempMargin}px`],
-                            },
-                            { type: spring, bounce: 0.3, duration: 0.8 },
-                        );
-
-                        animate(
-                            el,
-                            {
-                                marginLeft: [
-                                    `${elOuterWidth - elWidth / 2 - tabsGap}px`,
-                                    `${elOuterWidth}px`,
-                                ],
-                            },
-                            { type: spring, bounce: 0.3, duration: 0.8 },
-                        );
-                    } else {
-                        console.log("Not found");
-                    }
-
-                    animate(el, tabStyles.enter, {
-                        type: spring,
-                        bounce: 0.3,
-                        duration: 0.8,
-                    }).then(() => {
-                        setTimeout(() => {
-                            nextEl.style.marginLeft = `${tabsGap}px`;
-                            el.style.position = "inherit";
-                            el.style.marginLeft = `${tabsGap}px`;
-                            res();
-                        });
-                    });
+                    // But you can put resolve() in the
+                    // then() function to add a delay
+                    res();
                 } else {
                     console.warn("not found");
                 }
@@ -208,6 +134,46 @@ class HeaderAnimation {
         });
     };
 
+    public animateItemAddition = (path: string, fn: any) => {
+
+        // Adding this animation to the queue
+        // with a new Promise in case you want to
+        // make a delay between animation starts
+        this.animationQueue.add(async () => {
+            return new Promise((res) => {
+
+                // Execute passed function
+                // addTab() in this case or any other
+                fn();
+
+                const el: HTMLElement | null = document.querySelector(
+                    `button[data-headertab-path="header-tab:${path}"]`,
+                );
+
+                if (el) {
+                    // Get the defined animation values
+                    const transitionsKeys = this.tabTransitionKeys;
+
+                    animate(el, transitionsKeys, this.animationType);
+
+                    // Execute resolve() before the animation completes.
+                    // This implementation should not break at a
+                    // running the animation very often
+                    //
+                    // But you can put resolve() in the
+                    // then() function to add a delay
+                    res();
+                } else {
+                    console.warn("not found");
+                }
+            });
+        });
+    };
+
+    // Header menu animation to compensate
+    // interface jumping at element creation
+    //
+    // No more needed
     private compensateHeaderOffset = (from: number, to: number) => {
         animate(
             this.headerMenu,

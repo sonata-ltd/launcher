@@ -4,7 +4,7 @@ import { useNavigate } from '@solidjs/router';
 import styles from './header.module.less';
 
 import Icon from "@/assets/images/home.svg";
-import { createOverlayScrollbars, OverlayScrollbarsComponent } from 'overlayscrollbars-solid';
+import { createOverlayScrollbars } from 'overlayscrollbars-solid';
 import 'overlayscrollbars/overlayscrollbars.css';
 import { useTabs } from 'data/tabs';
 import HeaderAnimation from './anims';
@@ -12,17 +12,18 @@ import HeaderAnimation from './anims';
 export const tabStyles = {
     enter: {
         opacity: [1, 1],
-        transform: [`translateY(-71px)`, `translateY(0px)`]
+        transform: [`translateY(-102%)`, `translateY(0%)`]
     },
     exit: {
         opacity: [1, 1],
-        transform: [`translateY(0px)`, `translateY(-71px)`]
+        transform: [`translateY(0%)`, `translateY(-102%)`]
     }
 }
 
 
 const Header: Component = (props: any) => {
     const [headerTabs, { addHeaderTab, removeHeaderTab }] = useTabs();
+    const [selectedTab, setSelectedTab] = createSignal(0);
 
 
     // Navigation Managment
@@ -33,34 +34,14 @@ const Header: Component = (props: any) => {
         setSelectedTab(index);
     }
 
-    const [selectedTab, setSelectedTab] = createSignal(0);
-
-
-    // Custom Scrolls Initialization
-    const [initBodyOverlayScrollbars, getBodyOverlayScrollbarsInstance] =
-    createOverlayScrollbars({
-        defer: true,
-        options: {
-            scrollbars: {
-                autoHide: 'scroll',
-                clickScroll: true
-            },
-        },
-    });
-
-    onMount(() => {
-        initBodyOverlayScrollbars(document.body);
-    });
-
 
     // Animations
     let headerMenu: HTMLElement;
-    let headerContainer: HTMLElement;
     let headerAnimation: HeaderAnimation;
 
     const initializeHeaderAnimation = () => {
         if (headerMenu) {
-            headerAnimation = new HeaderAnimation(headerMenu, headerContainer);
+            headerAnimation = new HeaderAnimation(headerMenu);
         }
     }
 
@@ -78,26 +59,27 @@ const Header: Component = (props: any) => {
         })
     }
 
-    const animateOnFirstMount = (el: HTMLElement) => {
-        if (headerAnimation) {
-            headerAnimation.animateOnFirstMount(el);
+    const animateOnFirstMount = () => {
+        if (headerAnimation && headerMenu) {
+            headerAnimation.animateOnFirstMount(headerMenu);
         }
     }
 
     createEffect(() => {
         if (headerMenu) {
             initializeHeaderAnimation();
+            animateOnFirstMount();
         }
     });
 
 
     return (
         <>
-            <header ref={headerContainer} class={styles["app-header"]}>
+            <header class={styles["app-header"]}>
                 <div ref={headerMenu} class={styles["header-menu"]}>
-                    {/* <button onClick={() => addTab()}>+</button> */}
                     <For each={headerTabs()}>{(tabInstance, i) =>
                         <button
+                            class={styles["header-tab"]}
                             classList={{ [styles.selected]: selectedTab() === i() }}
                             onClick={() => redirect(tabInstance.path, i())}
                             data-headertab-path={`header-tab:${tabInstance.path}`}
@@ -107,7 +89,6 @@ const Header: Component = (props: any) => {
                         </button>
                     }
                     </For>
-                    {/* <button onClick={() => removeTab()}>Remove</button> */}
                 </div>
             </header>
         </>

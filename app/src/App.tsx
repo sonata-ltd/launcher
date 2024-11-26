@@ -1,9 +1,29 @@
-import { type Component } from 'solid-js';
+import { onMount, type Component } from 'solid-js';
 import Header from 'components/Header/header';
 import { TabsProvider } from 'data/tabs';
+import { createOverlayScrollbars } from 'overlayscrollbars-solid';
+import 'overlayscrollbars/overlayscrollbars.css';
 
 
 const App: Component = (props: any) => {
+
+    // Custom Scrollbar Initialization
+    const [initBodyOverlayScrollbars, getBodyOverlayScrollbarsInstance] =
+    createOverlayScrollbars({
+        defer: true,
+        options: {
+            scrollbars: {
+                autoHide: 'scroll',
+                clickScroll: true
+            },
+        },
+    });
+
+    onMount(() => {
+        initBodyOverlayScrollbars(document.body);
+    });
+
+
     return (
         <>
             <TabsProvider count={1}>
