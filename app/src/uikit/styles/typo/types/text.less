@@ -1,0 +1,50 @@
+@type: text;
+
+@styles:       xl,   lg,   md,   sm,   xs;
+@sizes:        20px, 18px, 16px, 14px, 12px;
+@line-heights: 30px, 28px, 24px, 20px, 18px;
+
+@weights: r 400, m 500, s 600, b 700;
+
+@letter-spacing: 0;
+
+
+.generate-classes() {
+    .loop-weights(@weight-i: length(@weights)) when (@weight-i > 0) {
+        @weight: extract(@weights, @weight-i);
+        @weight-name: extract(@weight, 1);
+        @weight-value: extract(@weight, 2);
+
+        .loop-styles(@size-i: length(@styles)) when (@size-i > 0) {
+            @style-name: extract(@styles, @size-i);
+            @font-size: extract(@sizes, @size-i);
+            @line-height: extract(@line-heights, @size-i);
+
+            .@{ui}-@{type}-@{style-name}-@{weight-name} {
+                font-family: Inter;
+                font-size: @font-size;
+                font-variation-settings: "opsz" @font-optical-size, "wght" @weight-value;
+                line-height: @line-height;
+                letter-spacing: @letter-spacing;
+                text-underline-position: from-font;
+                text-decoration-skip-ink: none;
+
+                margin: 0;
+
+                & + p {
+                    margin: 0;
+                    margin-top: @line-height;
+                }
+            }
+
+            .loop-styles(@size-i - 1);
+        }
+
+        .loop-styles();
+        .loop-weights(@weight-i - 1);
+    }
+
+    .loop-weights();
+}
+
+.generate-classes();

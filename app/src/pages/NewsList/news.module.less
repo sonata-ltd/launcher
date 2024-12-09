@@ -1,43 +1,50 @@
-/* @import "@/styles/uikit/main.less"; */
+@import "@/styles/uikit/main.less";
+@import "@/styles/functions.less";
 
 @minecraft-new-tag: #AE32E9;
 @name: minecraft;
+
+@post-padding: 15px;
 
 
 .feed {
     display: flex;
     width: 100%;
     flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    margin-top: 30px;
 
     .post {
-        max-width: 892px;
+        max-width: 700px;
         display: flex;
         flex-direction: column;
-        margin: auto;
+        gap: 15px;
+        padding: 15px;
+        border-radius: 25px;
 
-        user-select: none;
+        .av-acryl;
+
+        /* user-select: none;
         -webkit-user-select: none;
-        cursor: default;
+        cursor: default; */
 
         .header {
             display: flex;
             gap: 10px;
+            text-transform: capitalize;
 
-            /* .av-display-xs-m; */
+            .av-text-xl-m;
+            color: @text-primary;
+        }
 
-            .tag {
-                padding: 4px 7px;
-                background-color: @minecraft-new-tag;
-                color: white;
-                font-size: 24px;
-                font-weight: 400;
-                text-transform: capitalize;
-            }
+        img {
+            .calc-inner-radius(25px, 15px);
         }
 
         .descr {
-            /* .text-md-regular; */
-            color: #535862;
+            .av-text-lg-r;
+            color: @text-secondary;
         }
     }
 }

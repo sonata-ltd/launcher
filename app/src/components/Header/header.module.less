@@ -2,7 +2,6 @@
 @import "@/styles/uikit/main.less";
 
 @selected-tab-bg-color: rgba(240, 240, 240, 1);
-@header-bg-blur-size: 30px;
 
 
 .header-tab {
@@ -47,10 +46,9 @@
     position: sticky;
     display: flex;
     top: 0;
+    z-index: 100;
 
-    background-color: rgba(245, 245, 245, 0.74);
-    backdrop-filter: blur(@header-bg-blur-size);
-    -webkit-backdrop-filter: blur(@header-bg-blur-size);
+    .av-acryl;
 
 
    .header-menu {

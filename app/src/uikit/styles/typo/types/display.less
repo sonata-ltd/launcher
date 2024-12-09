@@ -1,0 +1,77 @@
+@type: display;
+
+@elements:       h1,      h2,      h3,      h4,       h5,     h6;
+@margins-top:    0,       0,       0,       0,        0,      32px;
+@margins-bottom: 0,       0,       0,       30px,     20px,   16px;
+
+@styles:         2xl,     xl,      lg,      md,       sm,     xs;
+@sizes:          72px,    60px,    48px,    36px,     30px,   24px;
+@line-heights:   90px,    72px,    60px,    44px,     38px,   32px;
+@letter-spacings: -0.02em, -0.02em, -0.02em, -0.02em, 0,     0;
+
+@weights: r 400, m 500, s 600, b 700;
+
+
+.generate-classes() {
+    .loop-styles(@size-i: length(@styles)) when (@size-i > 0) {
+        @style-name: extract(@styles, @size-i);
+        @font-size: extract(@sizes, @size-i);
+        @line-height: extract(@line-heights, @size-i);
+        @letter-spacing: extract(@letter-spacings, @size-i);
+
+
+        /* Generate header classes */
+        @element: extract(@elements, @size-i);
+        @margin-top: extract(@margins-top, @size-i);
+        @margin-bottom: extract(@margins-bottom, @size-i);
+
+        @semibold-weight: extract(@weights, 3);
+        @semibold-weight-value: extract(@semibold-weight, 2);
+
+        .@{ui}-@{element} {
+            font: inherit;
+            font-family: Inter;
+            font-size: @font-size;
+            font-variation-settings: "opsz" @font-optical-size, "wght" @semibold-weight-value;
+            line-height: @line-height;
+            letter-spacing: @letter-spacing;
+            text-underline-position: from-font;
+            text-decoration-skip-ink: none;
+
+            color: @gray-900;
+
+            margin-top: @margin-top;
+            margin-bottom: @margin-bottom;
+        }
+
+
+        /* Generate main classes */
+        .loop-weights(@weight-i: length(@weights)) when (@weight-i > 0) {
+            @weight: extract(@weights, @weight-i);
+            @weight-name: extract(@weight, 1);
+            @weight-value: extract(@weight, 2);
+
+
+            .@{ui}-@{type}-@{style-name}-@{weight-name} {
+                font: inherit;
+                font-family: Inter;
+                font-size: @font-size;
+                font-variation-settings: "opsz" @font-optical-size, "wght" @weight-value;
+                line-height: @line-height;
+                letter-spacing: @letter-spacing;
+                text-align: left;
+                text-underline-position: from-font;
+                text-decoration-skip-ink: none;
+            }
+
+            .loop-weights(@weight-i - 1);
+        }
+
+        .loop-weights();
+        .loop-styles(@size-i - 1);
+    }
+
+    .loop-styles();
+}
+
+.generate-classes();
