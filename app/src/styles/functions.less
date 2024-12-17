@@ -6,3 +6,13 @@
 .calc-outer-radius(@inner-radius, @padding) {
   border-radius: @inner-radius + @padding;
 }
+
+.shade-background(@initial-color, @shade-color) {
+    /* background: linear-gradient(0deg, @shade-color, @shade-color), @initial-color; */
+    background: mix(@initial-color, @shade-color, 40%);
+}
+
+.shade-color(@initial-color, @shade-color) {
+    /* color: linear-gradient(0deg, @shade-color, @shade-color), @initial-color; */
+    color: mix(@initial-color, @shade-color, 40%);
+}

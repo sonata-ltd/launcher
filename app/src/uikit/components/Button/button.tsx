@@ -3,8 +3,19 @@ import styles from './button.module.less';
 import { animate, spring } from 'motion';
 import { animationValues as av } from '../definitions';
 
+enum ButtonSizes {
+    sm,
+    md,
+    lg
+}
+
 type ButtonProps = {
     primary?: boolean,
+    secondary?: boolean,
+    tertiary?: boolean,
+    disabled?: boolean,
+    size?: ButtonSizes,
+    icon?: string,
     children?: any,
 }
 
@@ -12,7 +23,7 @@ const Button: Component<ButtonProps> = (props) => {
     const animateMouseDown = (e: Event) => {
         console.log("Mouse down registered");
 
-        if (e.target) {
+        if (e.target && !props.disabled) {
             animate(
                 e.target as HTMLElement,
                 av.elementsPoints.button.mouseDown,
@@ -24,7 +35,7 @@ const Button: Component<ButtonProps> = (props) => {
     const animateMouseUp = (e: Event) => {
         console.log("Mouse up registered");
 
-        if (e.target) {
+        if (e.target && !props.disabled) {
             animate(
                 e.target as HTMLElement,
                 av.elementsPoints.button.mouseUp,
@@ -37,9 +48,15 @@ const Button: Component<ButtonProps> = (props) => {
         <>
             <button
                 class={styles["button"]}
-                classList={{ [styles.primary]: props.primary }}
+                classList={{
+                    [styles.primary]: props.primary,
+                    [styles.secondary]: props.secondary,
+                    [styles.tertiary]: props.tertiary,
+                    [styles.disabled]: props.disabled
+                }}
                 onMouseDown={animateMouseDown}
                 onMouseUp={animateMouseUp}
+                onMouseLeave={animateMouseUp}
             >
                 {props.children || "Button"}
             </button>

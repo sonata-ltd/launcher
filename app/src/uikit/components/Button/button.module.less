@@ -1,24 +1,86 @@
 @import "@/uikit/styles/main";
+@import "@/styles/functions";
+
+
+.disabled-defines(@initial-bg, @initial-color, @enable-bg-shade) {
+    &.disabled {
+        outline: none;
+        cursor: default;
+
+        .shade-color(@initial-color, @disabled_shade);
+
+        & when (@enable-bg-shade = true) {
+            .shade-background(@initial-bg, @disabled_shade);
+        }
+
+        &:hover {
+            & when (@enable-bg-shade = true) {
+                .shade-background(@initial-bg, @disabled_shade);
+            }
+
+            .shade-color(@initial-color, @disabled_shade);
+
+            outline: none;
+        }
+    }
+}
 
 .button {
     width: max-content;
     padding: 8px 15px;
     border-radius: 10px;
     border: none;
+    outline: none;
 
     cursor: pointer;
 
-    .av-text-sm-s;
-
     &.primary {
-        background-color: #007AFF;
+        background: @btn-primary-bg;
         box-shadow: 0px 0px 10px rgba(50, 145, 233, 0.5);
-        color: @btn-active-color;
+        color: @btn-primary-color;
 
-        transition: scale 0.3s;
+        .av-text-sm-s;
+
+        .disabled-defines(@btn-primary-bg, @btn-primary-color, true);
 
         &:hover {
-
+            background: @btn-primary-bg_hover;
+            color: @btn-primary-color_hover;
         }
+    }
+
+    &.secondary {
+        background: @btn-secondary-bg;
+        color: @btn-secondary-color;
+
+        .av-text-sm-r;
+
+        .disabled-defines(@btn-secondary-bg, @btn-secondary-color, true);
+
+        &:hover {
+            /* .shade-background(@btn-secondary-bg, @hover_shade); */
+            background: @btn-secondary-bg_hover;
+            color: @btn-secondary-color_hover;
+        }
+    }
+
+    &.tertiary {
+        background: @btn-tertiary-bg;
+        color: @btn-tertiary-color;
+
+        .av-text-sm-r;
+
+        .disabled-defines(@btn-tertiary-bg, @btn-tertiary-color, false);
+
+        &:hover {
+            background: @btn-tertiary-bg_hover;
+            color: @btn-tertiary-color_hover;
+            outline: @btn-tertiary-stroke_hover;
+        }
+    }
+
+
+    &:focus {
+        outline: @focus-outline;
     }
 }
