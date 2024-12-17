@@ -1,5 +1,5 @@
 import { ref } from 'hywer';
-import { routeNames, routes } from '@/ui/Routes';
+import { routeNames, routes } from '@/ui/routes';
 
 import './Header.css';
 // import { navigateTo } from 'hywer/x/router';

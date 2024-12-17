@@ -1,6 +1,6 @@
 import { ref } from "hywer"
 
-import Header from "@/ui/widgets/header/Header"
+import Header from "@/ui/widgets/Header/Header"
 import NewsList from "@/ui/widgets/newsList/NewsList"
 
 import css from "./App.module.less"

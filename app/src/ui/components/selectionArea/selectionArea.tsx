@@ -2,7 +2,7 @@ import { JSX, Reactive, effect, ref } from "hywer/jsx-runtime";
 import css from './selectionArea.module.less';
 import Button from "../buttons/Buttons";
 import { For, Svg } from "hywer/x/html";
-import Input from "../input/Input";
+import Input from "../input/input";
 import Search from "./search";
 
 

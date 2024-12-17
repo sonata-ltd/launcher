@@ -2,7 +2,7 @@ import { JSX, ref } from 'hywer/jsx-runtime';
 import css from './grid.module.less';
 import { For } from 'hywer/x/html';
 import InstanceLogo from '@/assets/images/InstanceDefaultLogo.svg';
-import { InstanceCardButton } from '@/ui/components/buttons/Buttons';
+import { InstanceCardButton } from '@/ui/components/buttons/buttons';
 import Store from "@/data/store";
 import { gsap } from 'gsap/all';
 

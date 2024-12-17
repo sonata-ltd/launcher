@@ -1,11 +1,11 @@
 import { derive, ref } from 'hywer';
 import { ProgressTargetsList, ProgressMessage, ProgressStatuses } from '@/data/types';
-import { SelectionArea, SelectionItem } from '@/ui/components/selectionArea/SelectionArea';
-import { ContentStack, FlexBox, VerticalStack, Window, WindowControls } from '@/ui/components/window/Window';
+import { SelectionArea, SelectionItem } from '@/ui/components/selectionArea/selectionArea';
+import { ContentStack, FlexBox, VerticalStack, Window, WindowControls } from '@/ui/components/window/window';
 import { ProgressDisplay } from '@/ui/widgets/progressDisplay/ProgressDisplay';
-import Input from '@/ui/components/input/Input';
+import Input from '@/ui/components/input/input.tsx';
 import { For } from 'hywer/x/html';
-import Button from '@/ui/components/buttons/Buttons';
+import Button from '@/ui/components/buttons/buttons';
 import CreateWindowInstance, { contentStackStates } from './createWindow';
 import exampleImage from './s_marks-09_4x.png';
 import { DisplayIcon } from '@/ui/components/displayIcon/DisplayIcon';

@@ -1,6 +1,6 @@
-import NewsList from "@/ui/widgets/newsList/NewsList";
-import Instances from "@/ui/pages/Instances/Instances";
-import UIKitDebug from "@/ui/pages/UIKitDebug/UIKitDebug";
+import NewsList from "@/ui/widgets/NewsList/NewsList";
+import Instances from "@/ui/pages/Instances/instances";
+import UIKitDebug from "@/ui/pages/UIKitDebug/uikitdebug";
 
 export const routeNames = {
     root: "/",

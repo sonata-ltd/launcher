@@ -1,5 +1,5 @@
-import Button from '@/ui/components/buttons/Buttons';
-import { Window, WindowControls } from '@/ui/components/window/Window';
+import Button from '@/ui/components/buttons/buttons';
+import { Window, WindowControls } from '@/ui/components/window/window';
 import { Reactive, ref } from 'hywer/jsx-runtime';
 import css from './imageBrowser.module.less';
 import ie from './instanceObject.module.less';
