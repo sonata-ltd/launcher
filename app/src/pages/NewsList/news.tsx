@@ -11,7 +11,7 @@ const News: Component = () => {
     const [data, setData] = createSignal([
         {
             "tag": "sonata news",
-            "name": "example news",
+            "name": "new on realms: affordable housing",
             "imglink": PreviewImage,
             "descr": "if there is one thing i wish i could give to the next generation that’s coming up in this increasingly expensive world, it would be better housing opportunities. barring that, maybe some new minecraft maps from our community would suffice? for those of us that are not castle - accommodated (if you are, hook me up with your supplier), it’s rare that you have an optimal living situation – these maps understand you!",
             "date": "april 29, 2022",
@@ -51,7 +51,6 @@ const News: Component = () => {
                             <Show
                                 when={post.contentlink}
                             >
-                                <CodeComment>Implement fucking UIKit button here</CodeComment>
                                 <Button primary>Read More</Button>
                             </Show>
                         </div>

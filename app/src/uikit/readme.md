@@ -1,6 +1,6 @@
-# AuraVibe - SolidJS UI Kit
+# AuraVibe - SolidJS UIKit
 
-**AuraVibe** is a modular and highly customizable UI Kit designed for use with SolidJS. It provides a consistent design language, leveraging LESS for styling and CSS Modules to ensure scoped styles. The kit includes pre-built components and a structured style system for rapid development of SolidJS applications.
+**AuraVibe** is a modular and highly customizable UI Kit designed for use with SolidJS. It provides a consistent design language, leveraging LESS for styling and CSS Modules to ensure scoped styles.
 
 ## Project Structure
 
