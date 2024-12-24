@@ -1,6 +1,7 @@
 use std::fs::{File, OpenOptions};
 use std::io::{ErrorKind, Write};
 use serde_json::{json, Value};
+use sha1_smol::Sha1;
 
 use crate::instance::{Instance, InstanceInfo, Paths};
 
@@ -16,6 +17,7 @@ pub fn recreate(file: &String) -> Result<(File, Value), String> {
         Err(e) => Err(format!("Failed to create instance manifest file: {}", e)),
     }
 }
+
 
 pub fn gen_manifest<'a>(instance: &Instance, paths: &Paths, instance_info: &InstanceInfo) -> Result<(), String> {
     let instance_manifest_file = match OpenOptions::new()
@@ -55,10 +57,16 @@ pub fn gen_manifest<'a>(instance: &Instance, paths: &Paths, instance_info: &Inst
         Err(_) => json!({})
     };
 
+    // Generate UUID for instance
+    let mut hasher = Sha1::new();
+    let hasher_ready_input = format!("{}_{}", instance.name, &instance_info.version);
+    hasher.update(hasher_ready_input.as_bytes());
+
     instance_manifest["general"] = json!({
         "name": instance.name,
         "version": instance_info.version,
         "loader": "vanilla",
+        "id": hasher.digest().to_string(),
         "playtime": "0"
     });
 

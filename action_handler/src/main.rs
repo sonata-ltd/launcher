@@ -166,6 +166,8 @@ async fn run_instance_ws(mut ws: WebSocketConnection) -> tide::Result<()> {
 
 async fn list_instances_ws(mut ws: WebSocketConnection) -> tide::Result<()> {
     while let Some(Ok(Message::Text(_input))) = ws.next().await {
+        println!("Got new message: {}", _input);
+
         let list_struct = List::new("/Users/quartix/.sonata/headers/main.json".to_string());
 
         let _result;

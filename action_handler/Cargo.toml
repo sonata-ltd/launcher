@@ -19,3 +19,5 @@ chrono = "0.4.38"
 home = "0.5.9"
 sys-info = "0.9.1"
 lzma-rs = "0.3.0"
+uuid = { version = "1.11.0", features = ["v5"] }
+sha1_smol = "1.0.1"
