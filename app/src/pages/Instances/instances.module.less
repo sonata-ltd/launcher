@@ -1,4 +1,21 @@
-.InstancesContainer {
+.InstancesWrapper {
     width: 100%;
-    padding: 10px;
+    display: flex;
+    justify-content: center;
+
+    .PageContent {
+        display: flex;
+        flex-direction: column;
+        padding-top: 10px;
+
+        .InstancesContainer {
+            max-width: 1800px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            padding: 10px;
+        }
+    }
 }

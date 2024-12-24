@@ -1,5 +1,5 @@
 import { initialTabs } from "routes";
-import { createSignal, createContext, useContext } from "solid-js";
+import { createSignal, createContext, useContext, JSX } from "solid-js";
 
 export interface Tab {
     name: string;
@@ -8,7 +8,7 @@ export interface Tab {
 
 const TabsContext = createContext();
 
-export function TabsProvider(props: any) {
+export function TabsProvider(props: { children: JSX.Element }) {
     const [headerTabs, setHeaderTabs] = createSignal(initialTabs),
         store = [
             headerTabs,

@@ -1,6 +1,7 @@
 import { createContext, useContext, JSX } from "solid-js";
 import { createStore, Store } from "solid-js/store";
 import { createSignal, onCleanup } from "solid-js";
+import { wsNames } from "./types";
 
 
 interface ManagedWebSocket {
@@ -65,14 +66,11 @@ function createManagedWebSocket(
 }
 
 export function WebSocketProvider(props: { children: JSX.Element }) {
-  const socketUrls: Record<string, string> = {
-    listInstances: "ws://127.0.0.1:8080/ws/instance/list",
-  };
 
   // Dynamically create websockets connections
   const [sockets, setSockets] = createStore<WebSocketMap>(
     Object.fromEntries(
-      Object.entries(socketUrls).map(([key, url]) => [
+      Object.entries(wsNames).map(([key, url]) => [
         key,
         createManagedWebSocket(url, { reconnect: true, reconnectDelay: 5000 }),
       ])
