@@ -51,7 +51,7 @@ const News: Component = () => {
                             <Show
                                 when={post.contentlink}
                             >
-                                <Button primary>Read More</Button>
+                                <Button secondary>Read More</Button>
                             </Show>
                         </div>
                     }

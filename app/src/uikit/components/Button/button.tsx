@@ -13,16 +13,16 @@ type ButtonProps = {
     primary?: boolean,
     secondary?: boolean,
     tertiary?: boolean,
+    acryl?: boolean,
     disabled?: boolean,
     size?: ButtonSizes,
     icon?: string,
     children?: any,
+    class?: string
 }
 
 const Button: Component<ButtonProps> = (props) => {
     const animateMouseDown = (e: Event) => {
-        console.log("Mouse down registered");
-
         if (e.target && !props.disabled) {
             animate(
                 e.target as HTMLElement,
@@ -33,8 +33,6 @@ const Button: Component<ButtonProps> = (props) => {
     }
 
     const animateMouseUp = (e: Event) => {
-        console.log("Mouse up registered");
-
         if (e.target && !props.disabled) {
             animate(
                 e.target as HTMLElement,
@@ -46,20 +44,23 @@ const Button: Component<ButtonProps> = (props) => {
 
     return (
         <>
-            <button
-                class={styles["button"]}
-                classList={{
-                    [styles.primary]: props.primary,
-                    [styles.secondary]: props.secondary,
-                    [styles.tertiary]: props.tertiary,
-                    [styles.disabled]: props.disabled
-                }}
-                onMouseDown={animateMouseDown}
-                onMouseUp={animateMouseUp}
-                onMouseLeave={animateMouseUp}
-            >
-                {props.children || "Button"}
-            </button>
+            <div class={props.class}>
+                <button
+                    class={styles["button"]}
+                    classList={{
+                        [styles.primary]: props.primary,
+                        [styles.secondary]: props.secondary,
+                        [styles.tertiary]: props.tertiary,
+                        [styles.acryl]: props.acryl,
+                        [styles.disabled]: props.disabled
+                    }}
+                    onMouseDown={animateMouseDown}
+                    onMouseUp={animateMouseUp}
+                    onMouseLeave={animateMouseUp}
+                >
+                    {props.children || "Button"}
+                </button>
+            </div>
         </>
     )
 }

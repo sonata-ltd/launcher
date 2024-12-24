@@ -3,6 +3,7 @@ import Header from 'components/Header/header';
 import { TabsProvider } from 'data/tabs';
 import { createOverlayScrollbars } from 'overlayscrollbars-solid';
 import 'overlayscrollbars/overlayscrollbars.css';
+import { WebSocketProvider } from 'data/wsManager';
 
 
 const App: Component = (props: any) => {
@@ -26,12 +27,14 @@ const App: Component = (props: any) => {
 
     return (
         <>
-            <TabsProvider count={1}>
-                <Header />
-                <div id="content-view">
-                    {props.children}
-                </div>
-            </TabsProvider>
+            <WebSocketProvider>
+                <TabsProvider count={1}>
+                    <Header />
+                    <div id="content-view">
+                        {props.children}
+                    </div>
+                </TabsProvider>
+            </WebSocketProvider>
         </>
     );
 };

@@ -32,6 +32,8 @@
     border: none;
     outline: none;
 
+    transform: scale(1);
+
     cursor: pointer;
 
     &.primary {
@@ -53,7 +55,7 @@
         background: @btn-secondary-bg;
         color: @btn-secondary-color;
 
-        .av-text-sm-r;
+        .av-text-sm-s;
 
         .disabled-defines(@btn-secondary-bg, @btn-secondary-color, true);
 
@@ -76,6 +78,23 @@
             background: @btn-tertiary-bg_hover;
             color: @btn-tertiary-color_hover;
             outline: @btn-tertiary-stroke_hover;
+        }
+    }
+
+    &.acryl {
+        background: @acrylbtn-primary-bg;
+        color: @acrylbtn-primary-color;
+        background-blend-mode: normal, plus-lighter;
+        box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.25), 0px 0px 9px rgba(0, 0, 0, 0.2), inset 0px 0px 1px rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+
+        .av-text-sm-s;
+
+        .disabled-defines(@acrylbtn-primary-bg, @acrylbtn-primary-color, false);
+
+        &:hover {
+            background: @acrylbtn-primary-bg_hover;
+            color: @acrylbtn-primary-color_hover
         }
     }
 
