@@ -18,7 +18,8 @@ type ButtonProps = {
     size?: ButtonSizes,
     icon?: string,
     children?: any,
-    class?: string
+    class?: string,
+    onClick?: () => void,
 }
 
 const Button: Component<ButtonProps> = (props) => {
@@ -57,6 +58,7 @@ const Button: Component<ButtonProps> = (props) => {
                     onMouseDown={animateMouseDown}
                     onMouseUp={animateMouseUp}
                     onMouseLeave={animateMouseUp}
+                    onClick={props.onClick}
                 >
                     {props.children || "Button"}
                 </button>

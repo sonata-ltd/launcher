@@ -1,10 +1,10 @@
 .calc-inner-radius(@outer-radius, @outer-thickness) {
-  @inner-radius: @outer-radius - (@outer-thickness / 2);
-  border-radius: @inner-radius;
+    @inner-radius: @outer-radius - (@outer-thickness / 2);
+    border-radius: @inner-radius;
 }
 
 .calc-outer-radius(@inner-radius, @padding) {
-  border-radius: @inner-radius + @padding;
+    border-radius: @inner-radius + @padding;
 }
 
 .shade-background(@initial-color, @shade-color) {

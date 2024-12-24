@@ -36,7 +36,7 @@ const Header: Component = (props: any) => {
 
 
     // Animations
-    let headerMenu: HTMLElement;
+    let headerMenu: HTMLDivElement;
     let headerAnimation: HeaderAnimation;
 
     const initializeHeaderAnimation = () => {

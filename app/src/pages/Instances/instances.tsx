@@ -6,6 +6,8 @@ import { useWebSockets } from "data/wsManagment";
 import { createStore } from "solid-js/store";
 import { InstancesStateProvider, useInstancesState } from "data/instancesManagment";
 import Button from "uikit/components/Button";
+import { Window } from "uikit/components/Window";
+import { ContentStack, WindowControls } from "uikit/components/window/window";
 
 
 type InstanceInfo = {
@@ -21,12 +23,39 @@ const Page: Component = () => {
         console.log(instances);
     });
 
+    const [isWindowVisible, setWindowVisible] = createSignal(false);
+    const [windowIndex, setWindowIndex] = createSignal(0);
+
+    const enableCreateWindow = () => {
+        setWindowVisible(true);
+    }
+
+    const changeWindowIndex = (increment: boolean) => {
+        if (increment)
+            setWindowIndex((prev) => prev + 1);
+        else
+            setWindowIndex((prev) => prev - 1);
+    }
 
     return (
         <>
+            <Window
+                visible={isWindowVisible}
+                setVisible={setWindowVisible}
+            >
+                <ContentStack index={windowIndex}>
+                    <p>asdasd</p>
+                    <p>123123</p>
+                    <p>iu4w7ybvjd</p>
+                </ContentStack>
+                <WindowControls>
+                    <Button secondary onClick={() => changeWindowIndex(false)}>Back</Button>
+                    <Button primary onClick={() => changeWindowIndex(true)}>Next</Button>
+                </WindowControls>
+            </Window>
             <div class={css.InstancesWrapper}>
                 <div class={css.PageContent}>
-                    <Button secondary>Create</Button>
+                    <Button secondary onClick={() => enableCreateWindow()}>Create</Button>
                     <div class={css.InstancesContainer}>
                         <For each={instances}>{(instance, i) =>
                             <Card

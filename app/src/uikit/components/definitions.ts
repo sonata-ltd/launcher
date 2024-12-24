@@ -7,6 +7,16 @@ export const animationValues = {
         button: {
             mouseDown: { transform: ["scale(1)", "scale(0.9)"] },
             mouseUp: { transform: "scale(1)" }
+        },
+        window: {
+            open: {
+                top: ["-50px", "0px"],
+                opacity: [0, 1]
+            },
+            close: {
+                top: ["0px", "-50px"],
+                opacity: [1, 0]
+            }
         }
     }
 }
