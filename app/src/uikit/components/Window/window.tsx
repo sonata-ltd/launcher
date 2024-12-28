@@ -1,16 +1,25 @@
 import { Accessor, Component, createEffect, For, onMount, Setter, Show } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
-import { animate } from "motion";
+import { animate, spring } from "motion";
 import { animationValues as av } from '../definitions';
 
 import css from "./window.module.less";
 import Button from "../Button";
+import { ButtonTypes } from "../Button/button";
+import Page from "pages/Instances/instances";
 
+
+export type ButtonConfig = {
+    label: string,
+    action: () => void,
+    type?: ButtonTypes
+}
 
 type WindowProps = {
     visible: Accessor<boolean>,
     setVisible: Setter<boolean>,
-    children?: JSX.Element
+    controlsConfig?: Accessor<ButtonConfig[]>
+    children?: JSX.Element,
 }
 
 export const Window: Component<WindowProps> = (props) => {
@@ -36,6 +45,7 @@ export const Window: Component<WindowProps> = (props) => {
                 av.defaultAnimationType
             ).then(() => {
                 window.style.display = "none";
+
             })
         }
     })
@@ -71,7 +81,20 @@ export const Window: Component<WindowProps> = (props) => {
                         </div>
                     }
                 >
+                    {console.log("children")}
                     {props.children}
+                </Show>
+                <Show when={props.controlsConfig}>
+                    <div class={css.WindowControls}>
+                        <For each={props.controlsConfig()}>{(button) =>
+                            <Button
+                                type={button.type}
+                                onClick={button.action}
+                            >
+                                {button.label}
+                            </Button>
+                        }</For>
+                    </div>
                 </Show>
             </div>
         </>
@@ -98,15 +121,50 @@ type ContentStackProps = {
 }
 
 export const ContentStack: Component<ContentStackProps> = (props) => {
+    let containerRef = undefined;
+    const childRefs: HTMLDivElement[] = [];
+
+    let prevClientReactsheight = 0;
+
     createEffect(() => {
-        console.log(props.index());
+        // Get active element
+        const e = childRefs[props.index()];
+
+        // Get active element's dimensions
+        const eClientReacts = e.getClientRects()[0];
+
+        if (eClientReacts) {
+
+            if (containerRef) {
+
+                // Animate scroll
+                animate(
+                    containerRef.scrollLeft,
+                    eClientReacts.width * props.index(),
+                    { ...av.defaultAnimationType, onUpdate: v => containerRef.scrollLeft = v}
+                )
+
+                // Animate container height
+                animate(
+                    containerRef,
+                    { height: [prevClientReactsheight, eClientReacts.height] },
+                    av.defaultAnimationType
+                )
+            }
+
+            // Remember last element height for animation
+            prevClientReactsheight = eClientReacts.height;
+        }
     })
 
     return (
         <>
-            <div class={css.WindowContent}>
+            <div class={css.WindowContent} ref={containerRef}>
                 <For each={props.children}>{(child, i) =>
-                    <div class={css.Content}>
+                    <div
+                        class={css.Content}
+                        ref={(e) => childRefs[i()] = e}
+                    >
                         {child}
                     </div>
                 }</For>

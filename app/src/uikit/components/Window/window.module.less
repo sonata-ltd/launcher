@@ -27,7 +27,7 @@
     background: white;
 
     opacity: 0;
-    z-index: 1;
+    z-index: 2;
 
     .calc-outer-radius(@btn-borderradius, @content-padding);
 
@@ -90,9 +90,11 @@
 
     .WindowContent {
         display: flex;
-        overflow: auto;
+        overflow: hidden;
+        align-items: center;
 
         .Content {
+            height: max-content;
             width: 100%;
             display: flex;
             flex-direction: column;

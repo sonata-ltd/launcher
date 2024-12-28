@@ -54,7 +54,6 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
                 };
 
                 addInstance(newInstance);
-                console.log(instances);
             }
         }
     })
