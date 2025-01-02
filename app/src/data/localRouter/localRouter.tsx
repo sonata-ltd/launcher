@@ -34,7 +34,6 @@ const LocalRouterContext = createContext<Store>([
 export const LocalRouterProvider = (props: ParentProps) => {
     const [currentRoute, setCurrentRoute] = createSignal(window.location.pathname);
     const [routedElements, setRoutedElements] = createSignal<routedElement[]>([]);
-    const [cachedElements, setCachedElements] = createSignal<CachedElement[]>([]);
 
     const store: Store = [
             currentRoute,

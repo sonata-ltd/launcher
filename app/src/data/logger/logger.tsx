@@ -4,17 +4,12 @@ import { codes, CSSMarks } from "./codes";
 import { LoggerSettingsType } from "./options";
 
 
-// type LoggerSettingsType = {
-//     [key: string]: boolean | LoggerSettingsType
-// }
-
 type Store = [
     LoggerSettingsType,
     Setter<LoggerSettingsType>,
     {
         log: (option: string, msg: string) => void,
-        logw: (option: string, msg: string) => void,
-        loge: (option: string, msg: string) => void,
+        logw: (option: string, msg: string) => void
     }
 ]
 
@@ -72,31 +67,31 @@ export const LoggerProvider = (props: ParentProps) => {
         }
     }
 
+    const output = (warn: boolean, option: string, msg: string) => {
+        const [name, enabled, result] = getComponentInfo(option);
+
+        if (name && enabled && result) {
+            const [f, s, t] = formatOutputLog(name, msg);
+
+            if (!warn) {
+                console.log(f, s, t);
+            } else {
+                console.warn(f, s, t);
+            }
+        }
+    }
+
     const store: Store = [
         loggerSettings,
         setLoggerSettings,
         {
             log(option: string, msg: string) {
-                const [name, enabled, result] = getComponentInfo(option);
-                if (name && enabled && result) {
-                    const [f, s, t] = formatOutputLog(name, msg);
-                    console.log(f, s, t);
-                }
+                output(false, option, msg);
             },
+
             logw(option: string, msg: string) {
-                const [name, enabled, result] = getComponentInfo(option);
-                if (name && enabled && result) {
-                    const [f, s, t] = formatOutputLog(name, msg);
-                    console.warn(f, s, t);
-                }
-            },
-            loge(option: string, msg: string) {
-                const [name, enabled, result] = getComponentInfo(option);
-                if (name && enabled && result) {
-                    const [f, s, t] = formatOutputLog(name, msg);
-                    console.error(f, s, t);
-                }
-            },
+                output(true, option, msg);
+            }
         }
     ];
 
@@ -111,7 +106,7 @@ export const useLogger = () => {
     const context = useContext(LoggerContext);
 
     if (!context) {
-      throw new Error("useWebSockets must be used inside WebSocketProvider");
+      throw new Error("useLogger must be used inside LoggerProvider");
     }
 
     return context;
