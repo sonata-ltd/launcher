@@ -12,7 +12,7 @@ interface RenderRouteProps {
 }
 
 export const RenderRoute = (props: ParentProps<RenderRouteProps>) => {
-    const [loggerSettings, setLoggerSettings, { log }] = useLogger();
+    const [{ log }] = useLogger();
     const [currentRoute, { getScrollValues }] = useLocalRouter();
 
 

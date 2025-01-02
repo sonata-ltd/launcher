@@ -1,3 +1,4 @@
+import { useLogger } from "data/logger";
 import { createSign } from "node:crypto";
 import { Accessor, createContext, createEffect, createSignal, JSX, Owner, ParentProps, useContext } from "solid-js";
 
@@ -32,6 +33,7 @@ const LocalRouterContext = createContext<Store>([
 ]);
 
 export const LocalRouterProvider = (props: ParentProps) => {
+    const [{ log }] = useLogger();
     const [currentRoute, setCurrentRoute] = createSignal(window.location.pathname);
     const [routedElements, setRoutedElements] = createSignal<routedElement[]>([]);
 
@@ -61,6 +63,7 @@ export const LocalRouterProvider = (props: ParentProps) => {
 
                     window.history.pushState({}, "", path);
                     setCurrentRoute(path);
+                    log("localRouter.urlChange", "Url changed to: " + path);
                 },
 
                 getScrollValues(path: string) {

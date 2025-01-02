@@ -1,35 +1,22 @@
 import { Accessor, createContext, ParentProps, Setter, useContext } from "solid-js"
 import { createStore } from "solid-js/store";
 import { codes, CSSMarks } from "./codes";
-import { LoggerSettingsType } from "./options";
+import { defaultLoggerSettings, LoggerSettingsType } from "./options";
 
 
 type Store = [
-    LoggerSettingsType,
-    Setter<LoggerSettingsType>,
     {
         log: (option: string, msg: string) => void,
-    }
+        logw: (option: string, msg: string) => void
+    },
+    LoggerSettingsType,
+    Setter<LoggerSettingsType>
 ]
 
 const LoggerContext = createContext<Store>();
 
 export const LoggerProvider = (props: ParentProps) => {
-    const [loggerSettings, setLoggerSettings] = createStore<LoggerSettingsType>({
-        enable: false,
-        localRouter: {
-            name: "LocalRouter",
-            enable: false,
-            cacheChange: true,
-            scroll: true,
-            urlChange: true,
-        },
-        wsManager: {
-            name: "WebSocketManager",
-            enable: false,
-            connectionFailed: true,
-        }
-    });
+    const [loggerSettings, setLoggerSettings] = createStore<LoggerSettingsType>(defaultLoggerSettings)
 
     const getTimestamp = () => {
         const date = new Date();
@@ -66,20 +53,32 @@ export const LoggerProvider = (props: ParentProps) => {
         }
     }
 
+    const output = (warn: boolean, option: string, msg: string) => {
+        const [name, enabled, result] = getComponentInfo(option);
+
+        if (name && enabled && result) {
+            const [f, s, t] = formatOutputLog(name, msg);
+
+            if (!warn) {
+                console.log(f, s, t);
+            } else {
+                console.warn(f, s, t);
+            }
+        }
+    }
+
     const store: Store = [
-        loggerSettings,
-        setLoggerSettings,
         {
             log(option: string, msg: string) {
-                const [name, enabled, result] = getComponentInfo(option);
-
-                if (name && enabled && result) {
-                    const [f, s, t] = formatOutputLog(name, msg);
-
-                    console.log(f, s, t);
-                }
+                output(false, option, msg);
             },
-        }
+
+            logw(option: string, msg: string) {
+                output(true, option, msg);
+            }
+        },
+        loggerSettings,
+        setLoggerSettings,
     ];
 
     return (

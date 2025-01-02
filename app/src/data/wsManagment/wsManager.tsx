@@ -6,10 +6,10 @@ import { useLogger } from "data/logger";
 
 
 interface ManagedWebSocket {
-  state: () => WebSocketState;
-  messages: Store<string[]>;
-  sendMessage: (message: string) => void;
-  close: () => void;
+    state: () => WebSocketState;
+    messages: Store<string[]>;
+    sendMessage: (message: string) => void;
+    close: () => void;
 }
 
 type WebSocketState = "CONNECTING" | "OPEN" | "CLOSED" | "ERROR";
@@ -20,78 +20,78 @@ const WebSocketContext = createContext<WebSocketMap>();
 
 
 function createManagedWebSocket(
-  url: string,
-  options: { reconnect?: boolean; reconnectDelay?: number } = {}
+    url: string,
+    options: { reconnect?: boolean; reconnectDelay?: number } = {}
 ): ManagedWebSocket {
-    const [loggerSettings, setLoggerSettings, { logw }] = useLogger();
-  const { reconnect = true, reconnectDelay = 5000 } = options;
-  const [state, setState] = createSignal<WebSocketState>("CLOSED");
-  const [messages, setMessages] = createStore<string[]>([]);
-  let socket: WebSocket | undefined;
-  let reconnecting = true;
+    const [{ logw }] = useLogger();
+    const { reconnect = true, reconnectDelay = 5000 } = options;
+    const [state, setState] = createSignal<WebSocketState>("CLOSED");
+    const [messages, setMessages] = createStore<string[]>([]);
+    let socket: WebSocket | undefined;
+    let reconnecting = true;
 
 
-  const connect = () => {
-    setState("CONNECTING");
-    socket = new WebSocket(url);
+    const connect = () => {
+        setState("CONNECTING");
+        socket = new WebSocket(url);
 
-    socket.onopen = () => setState("OPEN");
-    socket.onclose = () => {
-      setState("CLOSED");
-      if (reconnect && reconnecting) {
-        setTimeout(connect, reconnectDelay);
-      }
+        socket.onopen = () => setState("OPEN");
+        socket.onclose = () => {
+            setState("CLOSED");
+            if (reconnect && reconnecting) {
+                setTimeout(connect, reconnectDelay);
+            }
+        };
+        socket.onerror = () => setState("ERROR");
+        socket.onmessage = (event) => setMessages((msgs) => [...msgs, event.data]);
     };
-    socket.onerror = () => setState("ERROR");
-    socket.onmessage = (event) => setMessages((msgs) => [...msgs, event.data]);
-  };
 
-  connect();
+    connect();
 
 
-  const close = () => {
-    reconnecting = false;
-    socket?.close();
-  };
-  onCleanup(close);
+    const close = () => {
+        reconnecting = false;
+        socket?.close();
+    };
+    onCleanup(close);
 
 
-  const sendMessage = (message: string) => {
-    if (state() === "OPEN") {
-      socket?.send(message);
-    } else {
-        logw("wsManager.connectionFailed", "WebSocket is not open");
-    }
-  };
+    const sendMessage = (message: string) => {
+        if (state() === "OPEN") {
+            socket?.send(message);
+        } else {
+            logw("wsManager.connectionFailed", "WebSocket is not open");
+        }
+    };
 
-  return { state, messages, sendMessage, close };
+    return { state, messages, sendMessage, close };
 }
 
 export function WebSocketProvider(props: { children: JSX.Element }) {
 
-  // Dynamically create websockets connections
-  const [sockets, setSockets] = createStore<WebSocketMap>(
-    Object.fromEntries(
-      Object.entries(wsNames).map(([key, url]) => [
-        key,
-        createManagedWebSocket(url, { reconnect: true, reconnectDelay: 5000 }),
-      ])
-    )
-  );
+    // Dynamically create websockets connections
+    const [sockets, setSockets] = createStore<WebSocketMap>(
+        Object.fromEntries(
+            Object.entries(wsNames).map(([key, url]) => [
+                key,
+                createManagedWebSocket(url, { reconnect: true, reconnectDelay: 5000 }),
+            ])
+        )
+    );
 
-  return (
-    <WebSocketContext.Provider value={sockets}>
-      {props.children}
-    </WebSocketContext.Provider>
-  );
+    return (
+        <WebSocketContext.Provider value={sockets}>
+            {props.children}
+        </WebSocketContext.Provider>
+    );
 }
 
 export function useWebSockets(): WebSocketMap {
-  const context = useContext(WebSocketContext);
+    const context = useContext(WebSocketContext);
 
-  if (!context) {
-    throw new Error("useWebSockets must be used inside WebSocketProvider");
-  }
+    if (!context) {
+        throw new Error("useWebSockets must be used inside WebSocketProvider");
+    }
 
-  return context;
+    return context;
 }

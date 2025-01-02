@@ -1,3 +1,4 @@
+import { useLogger } from "data/logger";
 import { Accessor, createContext, createSignal, Owner, ParentProps, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore } from "solid-js/store";
@@ -21,6 +22,7 @@ const KeepAliveContext = createContext<Store>();
 export const KeepAliveProvider = (
     props: ParentProps
 ) => {
+    const [{ log }] = useLogger();
     const [keepAliveElements, setKeepAliveElements] = createSignal<
         KeepAliveElement[]
     >([]);
@@ -30,6 +32,8 @@ export const KeepAliveProvider = (
             const newElements = [...prev, e];
             return newElements;
         })
+
+        log("keepAlive.cacheChange", `Cached new element with id: "${e.id}". Total cache: ${keepAliveElements().length}`);
 
         return e;
     }
