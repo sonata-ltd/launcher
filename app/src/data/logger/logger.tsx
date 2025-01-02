@@ -9,7 +9,6 @@ type Store = [
     Setter<LoggerSettingsType>,
     {
         log: (option: string, msg: string) => void,
-        logw: (option: string, msg: string) => void
     }
 ]
 
@@ -67,31 +66,19 @@ export const LoggerProvider = (props: ParentProps) => {
         }
     }
 
-    const output = (warn: boolean, option: string, msg: string) => {
-        const [name, enabled, result] = getComponentInfo(option);
-
-        if (name && enabled && result) {
-            const [f, s, t] = formatOutputLog(name, msg);
-
-            if (!warn) {
-                console.log(f, s, t);
-            } else {
-                console.warn(f, s, t);
-            }
-        }
-    }
-
     const store: Store = [
         loggerSettings,
         setLoggerSettings,
         {
             log(option: string, msg: string) {
-                output(false, option, msg);
-            },
+                const [name, enabled, result] = getComponentInfo(option);
 
-            logw(option: string, msg: string) {
-                output(true, option, msg);
-            }
+                if (name && enabled && result) {
+                    const [f, s, t] = formatOutputLog(name, msg);
+
+                    console.log(f, s, t);
+                }
+            },
         }
     ];
 
