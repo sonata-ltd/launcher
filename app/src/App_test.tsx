@@ -1,17 +1,13 @@
-import { createEffect, For, onMount, Show, useContext, type Component } from 'solid-js';
+import { createEffect, onMount, type Component } from 'solid-js';
 import Header from 'components/Header/header';
 import { TabsProvider } from 'data/tabs';
 import { createOverlayScrollbars } from 'overlayscrollbars-solid';
 import 'overlayscrollbars/overlayscrollbars.css';
 import { WebSocketProvider } from 'data/wsManagment';
 import { InstancesStateProvider } from 'data/instancesManagment';
+import { KeepAlive } from 'solid-keep-alive';
+import News from 'pages/NewsList/news';
 import { Route, Router } from '@solidjs/router';
-import { routes } from 'routes';
-import { RenderRoute, useLocalRouter } from 'data/localRouter';
-
-import "./App.css";
-import { LoggerProvider } from 'data/logger';
-import { KeepAliveWrapper, KeepAliveProvider } from 'data/keepAlive';
 
 
 const App: Component = (props: any) => {
@@ -32,17 +28,25 @@ const App: Component = (props: any) => {
         initBodyOverlayScrollbars(document.body);
     });
 
+    createEffect(() => {
+        console.log(props);
+    });
+
 
     return (
         <>
-            <WebSocketProvider>
-                <InstancesStateProvider>
-                    <TabsProvider>
-                        <Header />
-                    </TabsProvider>
-                    <RenderRoute keepAlive="cacheAll" />
-                </InstancesStateProvider>
-            </WebSocketProvider>
+            <Router>
+                <Route path="/" component={
+                    <KeepAlive>
+                        <News />
+                    </KeepAlive>
+                } />
+                <Route path="/instances" component={
+                    <KeepAlive>
+                        <News />
+                    </KeepAlive>
+                } />
+            </Router>
         </>
     );
 };

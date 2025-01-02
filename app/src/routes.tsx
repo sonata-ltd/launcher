@@ -1,4 +1,4 @@
-import { createSignal, lazy } from "solid-js";
+import { Component, createSignal, JSX, lazy } from "solid-js";
 
 
 export const routeNames = {
@@ -24,7 +24,12 @@ export let initialTabs = [
     }
 ]
 
-export const routes = [
+export interface route {
+    path: string,
+    component: Component,
+}
+
+export const routes: route[] = [
     {
         path: routeNames.NEWS,
         component: lazy(() => import("@/pages/NewsList/news.tsx")),

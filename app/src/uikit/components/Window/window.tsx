@@ -6,7 +6,6 @@ import { animationValues as av } from '../definitions';
 import css from "./window.module.less";
 import Button from "../Button";
 import { ButtonTypes } from "../Button/button";
-import Page from "pages/Instances/instances";
 
 
 export type ButtonConfig = {
@@ -28,25 +27,32 @@ export const Window: Component<WindowProps> = (props) => {
     let window: HTMLDivElement;
 
     createEffect(() => {
-        if (props.visible()) {
-            window.style.display = "block";
+        console.log("Effect triggered");
 
-            animate(
-                window,
-                av.elementsPoints.window.open,
-                av.defaultAnimationType
-            )
+        if (window) {
 
-            enableAnims = true;
-        } else if (props.visible() === false && enableAnims !== false) {
-            animate(
-                window,
-                av.elementsPoints.window.close,
-                av.defaultAnimationType
-            ).then(() => {
-                window.style.display = "none";
+            // Animate window closing
+            if (props.visible()) {
+                window.style.display = "block";
 
-            })
+                animate(
+                    window,
+                    av.elementsPoints.window.open,
+                    av.defaultAnimationType
+                )
+
+                enableAnims = true;
+
+            // Animate window opening
+            } else if (props.visible() === false && enableAnims !== false) {
+                animate(
+                    window,
+                    av.elementsPoints.window.close,
+                    av.defaultAnimationType
+                ).then(() => {
+                    window.style.display = "none";
+                })
+            }
         }
     })
 
@@ -81,12 +87,11 @@ export const Window: Component<WindowProps> = (props) => {
                         </div>
                     }
                 >
-                    {console.log("children")}
                     {props.children}
                 </Show>
                 <Show when={props.controlsConfig}>
                     <div class={css.WindowControls}>
-                        <For each={props.controlsConfig()}>{(button) =>
+                        <For each={props.controlsConfig?.()}>{(button) =>
                             <Button
                                 type={button.type}
                                 onClick={button.action}
@@ -121,7 +126,7 @@ type ContentStackProps = {
 }
 
 export const ContentStack: Component<ContentStackProps> = (props) => {
-    let containerRef = undefined;
+    let containerRef: Element | undefined = undefined;
     const childRefs: HTMLDivElement[] = [];
 
     let prevClientReactsheight = 0;
@@ -129,11 +134,13 @@ export const ContentStack: Component<ContentStackProps> = (props) => {
     createEffect(() => {
         // Get active element
         const e = childRefs[props.index()];
+        const currentE = childRefs[0];
 
         // Get active element's dimensions
         const eClientReacts = e.getClientRects()[0];
+        const currentEClientReacts = currentE.getClientRects()[0];
 
-        if (eClientReacts) {
+        if (eClientReacts && currentEClientReacts) {
 
             if (containerRef) {
 
@@ -143,6 +150,10 @@ export const ContentStack: Component<ContentStackProps> = (props) => {
                     eClientReacts.width * props.index(),
                     { ...av.defaultAnimationType, onUpdate: v => containerRef.scrollLeft = v}
                 )
+
+                if (prevClientReactsheight === 0) {
+                    prevClientReactsheight = currentEClientReacts.height;
+                }
 
                 // Animate container height
                 animate(

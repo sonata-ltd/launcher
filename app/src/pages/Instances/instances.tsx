@@ -7,7 +7,7 @@ import { createStore } from "solid-js/store";
 import { InstancesStateProvider, useInstancesState } from "data/instancesManagment";
 import Button from "uikit/components/Button";
 import { Window } from "uikit/components/Window";
-import { ButtonConfig, ContentStack, WindowControls } from "uikit/components/window/window";
+import { ButtonConfig, ContentStack, WindowControls } from "uikit/components/Window/window";
 import { ButtonTypes } from "uikit/components/Button/button";
 
 

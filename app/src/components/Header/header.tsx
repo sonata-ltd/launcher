@@ -8,6 +8,7 @@ import { createOverlayScrollbars } from 'overlayscrollbars-solid';
 import 'overlayscrollbars/overlayscrollbars.css';
 import { useTabs } from 'data/tabs';
 import HeaderAnimation from './anims';
+import { useLocalRouter } from 'data/localRouter';
 
 export const tabStyles = {
     enter: {
@@ -22,15 +23,17 @@ export const tabStyles = {
 
 
 const Header: Component = (props: any) => {
+    const [currentRoute, {setRoute}] = useLocalRouter();
     const [headerTabs, { addHeaderTab, removeHeaderTab }] = useTabs();
     const [selectedTab, setSelectedTab] = createSignal(0);
 
 
     // Navigation Managment
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
     const redirect = (name: string, index: number) => {
-        navigate(name);
+        // navigate(name);
+        setRoute(name);
         setSelectedTab(index);
     }
 

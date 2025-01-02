@@ -1,7 +1,5 @@
 import { Component, createEffect, createSignal, For, Show } from "solid-js";
 
-import CodeComment from "@/uikit/components/CodeComment";
-
 import styles from './news.module.less';
 import PreviewImage from './assets/post1.png';
 import Button from "uikit/components/Button";

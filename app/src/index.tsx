@@ -1,11 +1,16 @@
 /* @refresh reload */
 import { render } from 'solid-js/web';
-import { HashRouter, MemoryRouter, Router } from "@solidjs/router";
+import { HashRouter, MemoryRouter, Route, Router } from "@solidjs/router";
 
 import './index.css';
 import { ChildrenReturn, Component, lazy } from 'solid-js';
 import App from '@/App.tsx';
-import { routes } from './routes';
+import { routeNames, routes } from './routes';
+
+import News from "@/pages/NewsList/news";
+import { KeepAlive, KeepAliveProvider } from '@/data/keepAlive';
+import { LocalRouterProvider } from 'data/localRouter';
+import { LoggerProvider } from 'data/logger';
 
 
 const root = document.getElementById('root');
@@ -16,7 +21,15 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
   );
 }
 
+const getRouteByName = (name: string) => {
+    return routes.find(route => route.path === name);
+};
+
 
 render(() => (
-    <Router root={App}>{routes}</Router>
+    <LoggerProvider>
+        <LocalRouterProvider>
+            <App />
+        </LocalRouterProvider>
+    </LoggerProvider>
 ), root!);

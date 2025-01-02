@@ -2,6 +2,7 @@ import { createContext, useContext, JSX } from "solid-js";
 import { createStore, Store } from "solid-js/store";
 import { createSignal, onCleanup } from "solid-js";
 import { wsNames } from "./types";
+import { useLogger } from "data/logger";
 
 
 interface ManagedWebSocket {
@@ -22,6 +23,7 @@ function createManagedWebSocket(
   url: string,
   options: { reconnect?: boolean; reconnectDelay?: number } = {}
 ): ManagedWebSocket {
+    const [loggerSettings, setLoggerSettings, { logw }] = useLogger();
   const { reconnect = true, reconnectDelay = 5000 } = options;
   const [state, setState] = createSignal<WebSocketState>("CLOSED");
   const [messages, setMessages] = createStore<string[]>([]);
@@ -58,7 +60,7 @@ function createManagedWebSocket(
     if (state() === "OPEN") {
       socket?.send(message);
     } else {
-      console.warn("WebSocket is not open.");
+        logw("wsManager.connectionFailed", "WebSocket is not open");
     }
   };
 
@@ -86,8 +88,10 @@ export function WebSocketProvider(props: { children: JSX.Element }) {
 
 export function useWebSockets(): WebSocketMap {
   const context = useContext(WebSocketContext);
+
   if (!context) {
     throw new Error("useWebSockets must be used inside WebSocketProvider");
   }
+
   return context;
 }
