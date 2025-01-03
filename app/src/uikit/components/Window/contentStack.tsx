@@ -6,7 +6,8 @@ import css from "./window.module.less";
 
 
 type ContentStackProps = {
-    index: Accessor<number>
+    index: Accessor<number>,
+    prevIndex: Accessor<number | undefined>,
     children: JSX.Element[],
 }
 
@@ -15,17 +16,26 @@ export const ContentStack: Component<ContentStackProps> = (props) => {
     const childRefs: HTMLDivElement[] = [];
 
     let prevClientReactsheight = 0;
+    let prevE: HTMLDivElement | undefined = undefined;
 
     createEffect(() => {
         // Get active element
         const e = childRefs[props.index()];
-        const currentE = childRefs[0];
+
+        // Enable accesibility for active element
+        e.inert = false;
+
+
+        // Get initial element
+        const initialE = childRefs[0];
 
         // Get active element's dimensions
         const eClientReacts = e.getClientRects()[0];
-        const currentEClientReacts = currentE.getClientRects()[0];
 
-        if (eClientReacts && currentEClientReacts) {
+        // Get initial element's dimensions
+        const initialEClientReacts = initialE.getClientRects()[0];
+
+        if (eClientReacts && initialEClientReacts) {
 
             if (containerRef) {
 
@@ -36,8 +46,9 @@ export const ContentStack: Component<ContentStackProps> = (props) => {
                     { ...av.defaultAnimationType, onUpdate: v => containerRef.scrollLeft = v}
                 )
 
+                // Use the height of initial (or first) element for animation;
                 if (prevClientReactsheight === 0) {
-                    prevClientReactsheight = currentEClientReacts.height;
+                    prevClientReactsheight = initialEClientReacts.height;
                 }
 
                 // Animate container height
@@ -50,8 +61,16 @@ export const ContentStack: Component<ContentStackProps> = (props) => {
 
             // Remember last element height for animation
             prevClientReactsheight = eClientReacts.height;
+
+            // Disable accesibility to previous element
+            if (typeof props.prevIndex() === "number") {
+                const prevE = childRefs[props.prevIndex()];
+                console.log(prevE);
+                prevE.inert = true;
+            }
         }
     })
+
 
     return (
         <>
@@ -60,6 +79,7 @@ export const ContentStack: Component<ContentStackProps> = (props) => {
                     <div
                         class={css["content"]}
                         ref={(e) => childRefs[i()] = e}
+                        inert
                     >
                         {child}
                     </div>

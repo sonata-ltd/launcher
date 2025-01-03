@@ -1,0 +1,53 @@
+@import "@/uikit/styles/main";
+
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .label {
+        color: @input-label-color;
+
+        .av-text-sm-m;
+    }
+
+    .input {
+        height: 27px;
+        background: @input-bg;
+        border: none;
+        outline: @input-outline;
+        border-radius: @input-br;
+        padding: 2.5px 8px;
+        color: @input-text-color;
+
+        .av-text-md-r;
+
+
+        &:focus {
+            box-shadow: @focus-shadow-compensation, @focus-shadow;
+        }
+
+        &::placeholder {
+            color: @input-text-placeholder-color;
+        }
+
+        &.error {
+            outline: @input-outline_error;
+
+            &:focus {
+                box-shadow: @input-shadow_error;
+            }
+        }
+    }
+
+    .hint {
+        color: @input-hint-color;
+
+        .av-text-sm-r;
+
+        &.error {
+            color: @input-hint-color_error;
+        }
+    }
+}

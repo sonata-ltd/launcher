@@ -1,5 +1,5 @@
 import { useWebSockets } from "data/wsManagment";
-import { createContext, createEffect, createSignal, useContext } from "solid-js";
+import { Accessor, createContext, createEffect, createSignal, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore } from "solid-js/store";
 
@@ -20,13 +20,17 @@ type InstanceInfo = {
     version: string
 }
 
-const InstancesStateContext = createContext();
+type Store = [
+    Accessor<InstanceInfo[]>
+]
+
+const InstancesStateContext = createContext<Store>();
 
 export function InstancesStateProvider(props: { children: JSX.Element }) {
     const sockets = useWebSockets();
     const { state, messages, sendMessage } = sockets.listInstances;
 
-    const [instances, setInstances] = createStore<InstanceInfo[]>([]);
+    const [instances, setInstances] = createSignal<InstanceInfo[]>([]);
 
     const addInstance = (info: InstanceInfo) => {
         setInstances((prev) => [...prev, info]);
@@ -58,13 +62,23 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
         }
     })
 
+    const store: Store = [
+        instances
+    ]
+
     return (
-        <InstancesStateContext.Provider value={instances}>
+        <InstancesStateContext.Provider value={store}>
             {props.children}
         </InstancesStateContext.Provider>
     )
 }
 
 export function useInstancesState() {
-    return useContext(InstancesStateContext);
+    const context = useContext(InstancesStateContext);
+
+    if (!context) {
+        throw new Error("useInstancesState must be used inside InstancesStateProvider");
+    }
+
+    return context;
 }

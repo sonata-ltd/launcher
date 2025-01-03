@@ -6,9 +6,10 @@ import { useWebSockets } from "data/wsManagment";
 import { createStore } from "solid-js/store";
 import { InstancesStateProvider, useInstancesState } from "data/instancesManagment";
 import Button from "uikit/components/Button";
-import { FlexBox, Window } from "uikit/components/Window";
+import { FlexBox, VerticalStack, Window } from "uikit/components/Window";
 import { ButtonConfig, ContentStack, WindowControls } from "uikit/components/Window";
 import { ButtonTypes } from "uikit/components/Button/button";
+import { Input } from "uikit/components/Input";
 
 
 type InstanceInfo = {
@@ -18,10 +19,11 @@ type InstanceInfo = {
 }
 
 const Page: Component = () => {
-    const instances = useInstancesState();
+    const [instances] = useInstancesState();
 
     const [isWindowVisible, setWindowVisible] = createSignal(false);
     const [windowIndex, setWindowIndex] = createSignal(0);
+    const [prevWindowIndex, setPrevWindowIndex] = createSignal<undefined | number>(undefined);
 
     const buttonConfig = [
         [
@@ -32,14 +34,14 @@ const Page: Component = () => {
             },
             {
                 label: "Install",
-                action: () => setWindowIndex((prev) => prev + 1),
+                action: () => changeWindowIndex(true),
                 type: ButtonTypes.primary,
             }
         ],
         [
             {
                 label: "Back",
-                action: () => setWindowIndex((prev) => prev - 1),
+                action: () => changeWindowIndex(false),
                 type: ButtonTypes.secondary,
             },
             {
@@ -51,7 +53,7 @@ const Page: Component = () => {
         [
             {
                 label: "Back",
-                action: () => setWindowIndex((prev) => prev - 1),
+                action: () => changeWindowIndex(false),
                 type: ButtonTypes.secondary,
             },
             {
@@ -69,6 +71,8 @@ const Page: Component = () => {
     }
 
     const changeWindowIndex = (increment: boolean) => {
+        setPrevWindowIndex(windowIndex());
+
         if (increment)
             setWindowIndex((prev) => prev + 1);
         else
@@ -86,11 +90,18 @@ const Page: Component = () => {
                 setVisible={setWindowVisible}
                 controlsConfig={currentButtons}
             >
-                <ContentStack index={windowIndex}>
+                <ContentStack
+                    index={windowIndex}
+                    prevIndex={prevWindowIndex}
+                >
                     <div>
                         <FlexBox expand>
-                            <p>asdasdad</p>
-                            <p>asdasdad</p>
+                            <Input
+                                label="Name"
+                            />
+                            <Input
+                                label="Tags"
+                            />
                         </FlexBox>
                     </div>
                     <p>section 2</p>
@@ -105,7 +116,7 @@ const Page: Component = () => {
                 <div class={css.PageContent}>
                     <Button secondary onClick={() => enableCreateWindow()}>Create</Button>
                     <div class={css.InstancesContainer}>
-                        <For each={instances}>{(instance, i) =>
+                        <For each={instances()}>{(instance, i) =>
                             <Card
                                 name={instance.name}
                                 description="Fabric 1.20.1"

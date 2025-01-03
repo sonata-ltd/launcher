@@ -5,7 +5,7 @@ import css from "./window.module.less";
 
 export interface IFlexBox {
     expand?: boolean,
-    children: JSX.Element[],
+    children: JSX.Element | JSX.Element[],
 }
 
 export const FlexBox = (props: IFlexBox) => {
