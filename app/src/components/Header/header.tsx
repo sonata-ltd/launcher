@@ -39,7 +39,7 @@ const Header: Component = (props: any) => {
 
 
     // Animations
-    let headerMenu: HTMLDivElement;
+    let headerMenu: HTMLDivElement | undefined = undefined;
     let headerAnimation: HeaderAnimation;
 
     const initializeHeaderAnimation = () => {
@@ -62,18 +62,28 @@ const Header: Component = (props: any) => {
         })
     }
 
-    const animateOnFirstMount = () => {
+    const animateOnMount = () => {
         if (headerAnimation && headerMenu) {
             headerAnimation.animateOnFirstMount(headerMenu);
         }
     }
 
+
     createEffect(() => {
         if (headerMenu) {
             initializeHeaderAnimation();
-            animateOnFirstMount();
+            animateOnMount();
         }
     });
+
+    // Update selected tab after manual route change
+    createEffect(() => {
+        const currentTab = headerTabs().find((e) => e.path === currentRoute());
+
+        if (currentTab) {
+            setSelectedTab(headerTabs().indexOf(currentTab));
+        }
+    })
 
 
     return (

@@ -6,8 +6,8 @@ import { useWebSockets } from "data/wsManagment";
 import { createStore } from "solid-js/store";
 import { InstancesStateProvider, useInstancesState } from "data/instancesManagment";
 import Button from "uikit/components/Button";
-import { Window } from "uikit/components/Window";
-import { ButtonConfig, ContentStack, WindowControls } from "uikit/components/Window/window";
+import { FlexBox, Window } from "uikit/components/Window";
+import { ButtonConfig, ContentStack, WindowControls } from "uikit/components/Window";
 import { ButtonTypes } from "uikit/components/Button/button";
 
 
@@ -88,10 +88,10 @@ const Page: Component = () => {
             >
                 <ContentStack index={windowIndex}>
                     <div>
-                        <p>asdasdasdasd</p>
-                        <p>asdasdasdasd</p>
-                        <p>asdasdasdasd</p>
-                        <p>asdasdasdasd</p>
+                        <FlexBox expand>
+                            <p>asdasdad</p>
+                            <p>asdasdad</p>
+                        </FlexBox>
                     </div>
                     <p>section 2</p>
                     <h1>section 3</h1>

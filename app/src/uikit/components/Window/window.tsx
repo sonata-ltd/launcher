@@ -24,11 +24,9 @@ type WindowProps = {
 export const Window: Component<WindowProps> = (props) => {
     // Prevent window animation instantly after component render
     let enableAnims = false;
-    let window: HTMLDivElement;
+    let window: HTMLDivElement | undefined = undefined;
 
     createEffect(() => {
-        console.log("Effect triggered");
-
         if (window) {
 
             // Animate window closing
@@ -64,17 +62,17 @@ export const Window: Component<WindowProps> = (props) => {
     return (
         <>
             <div
-                class={css.Window}
+                class={css["window"]}
                 ref={window}
             >
-                <div class={css.Header}>
-                    <div class={css.Name}>
+                <div class={css["header"]}>
+                    <div class={css["name"]}>
                         <p>Instance Creation</p>
                     </div>
-                    <div class={css.ControlsContainer}>
-                        <div class={css.Minimize}></div>
+                    <div class={css["controls-container"]}>
+                        <div class={css["minimize"]}></div>
                         <div
-                            class={css.Close}
+                            class={css["close"]}
                             onClick={() => changeVisibility()}
                         ></div>
                     </div>
@@ -82,7 +80,7 @@ export const Window: Component<WindowProps> = (props) => {
                 <Show
                     when={props.children}
                     fallback={
-                        <div class={css.EmptyMessage}>
+                        <div class={css["empty-message"]}>
                             <p>Empty content...</p>
                         </div>
                     }
@@ -90,7 +88,7 @@ export const Window: Component<WindowProps> = (props) => {
                     {props.children}
                 </Show>
                 <Show when={props.controlsConfig}>
-                    <div class={css.WindowControls}>
+                    <div class={css["window-controls"]}>
                         <For each={props.controlsConfig?.()}>{(button) =>
                             <Button
                                 type={button.type}
@@ -113,73 +111,8 @@ type WindowControlsType = {
 
 export const WindowControls: Component<WindowControlsType> = (props) => {
     return (
-        <div class={css.WindowControls}>
+        <div class={css["window-controls"]}>
             {props.children}
         </div>
-    )
-}
-
-
-type ContentStackProps = {
-    index: Accessor<number>
-    children: JSX.Element[],
-}
-
-export const ContentStack: Component<ContentStackProps> = (props) => {
-    let containerRef: Element | undefined = undefined;
-    const childRefs: HTMLDivElement[] = [];
-
-    let prevClientReactsheight = 0;
-
-    createEffect(() => {
-        // Get active element
-        const e = childRefs[props.index()];
-        const currentE = childRefs[0];
-
-        // Get active element's dimensions
-        const eClientReacts = e.getClientRects()[0];
-        const currentEClientReacts = currentE.getClientRects()[0];
-
-        if (eClientReacts && currentEClientReacts) {
-
-            if (containerRef) {
-
-                // Animate scroll
-                animate(
-                    containerRef.scrollLeft,
-                    eClientReacts.width * props.index(),
-                    { ...av.defaultAnimationType, onUpdate: v => containerRef.scrollLeft = v}
-                )
-
-                if (prevClientReactsheight === 0) {
-                    prevClientReactsheight = currentEClientReacts.height;
-                }
-
-                // Animate container height
-                animate(
-                    containerRef,
-                    { height: [prevClientReactsheight, eClientReacts.height] },
-                    av.defaultAnimationType
-                )
-            }
-
-            // Remember last element height for animation
-            prevClientReactsheight = eClientReacts.height;
-        }
-    })
-
-    return (
-        <>
-            <div class={css.WindowContent} ref={containerRef}>
-                <For each={props.children}>{(child, i) =>
-                    <div
-                        class={css.Content}
-                        ref={(e) => childRefs[i()] = e}
-                    >
-                        {child}
-                    </div>
-                }</For>
-            </div>
-        </>
     )
 }

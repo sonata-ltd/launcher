@@ -4,7 +4,7 @@
 @default-padding: 15px;
 @content-padding: 15px;
 
-.Window {
+.window {
     max-width: 465px;
     width: 100%;
 
@@ -32,12 +32,12 @@
     .calc-outer-radius(@btn-borderradius, @content-padding);
 
 
-    .Header {
+    .header {
         display: flex;
         height: 50px;
         border-bottom: 1.5px @gray-50 solid;
 
-        .Name {
+        .name {
             display: flex;
             height: 100%;
             padding: 0 @default-padding;
@@ -48,7 +48,7 @@
             }
         }
 
-        .ControlsContainer {
+        .controls-container {
             height: 100%;
             display: flex;
             align-items: center;
@@ -56,7 +56,7 @@
             margin-left: auto;
             padding-right: @default-padding;
 
-            .Minimize, .Close {
+            .minimize, .close {
                 width: 14px;
                 height: 14px;
                 border-radius: 100%;
@@ -65,17 +65,17 @@
                 transition: scale 0.25s;
             }
 
-            .Minimize {
+            .minimize {
                 background: @warning;
             }
 
-            .Close {
+            .close {
                 background: @danger;
             }
         }
     }
 
-    .EmptyMessage {
+    .empty-message {
         display: flex;
         height: 75px;
         width: 100%;
@@ -88,12 +88,12 @@
         }
     }
 
-    .WindowContent {
+    .window-content {
         display: flex;
         overflow: hidden;
         align-items: center;
 
-        .Content {
+        .content {
             height: max-content;
             width: 100%;
             display: flex;
@@ -101,10 +101,18 @@
             flex: 0 0 auto;
             box-sizing: border-box;
             padding: @content-padding;
+
+            .flexbox {
+                display: flex;
+
+                &.expand > * {
+                    width: 100%;
+                }
+            }
         }
     }
 
-    .WindowControls {
+    .window-controls {
         display: flex;
         justify-content: flex-end;
         gap: 10px;
