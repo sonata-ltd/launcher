@@ -12,7 +12,7 @@ import { RenderRoute, useLocalRouter } from 'data/localRouter';
 import "./App.css";
 import { LoggerProvider } from 'data/logger';
 import { KeepAliveWrapper, KeepAliveProvider } from 'data/keepAlive';
-import { LSManagerProvider } from 'data/localStorageManagment/provider';
+import { LSManagerProvider } from 'data/DBInterface/provider';
 
 
 const App: Component = (props: any) => {
@@ -41,9 +41,7 @@ const App: Component = (props: any) => {
                     <TabsProvider>
                         <Header />
                     </TabsProvider>
-                    <LSManagerProvider>
                         <RenderRoute keepAlive="cacheAll" />
-                    </LSManagerProvider>
                 </InstancesStateProvider>
             </WebSocketProvider>
         </>

@@ -11,6 +11,7 @@ import { ButtonConfig, ContentStack, WindowControls } from "uikit/components/Win
 import { ButtonTypes } from "uikit/components/Button/button";
 import { Input } from "uikit/components/Input";
 import { ImageBrowser } from "uikit/widgets/ImageBrowser/imageBrowser";
+import { Portal } from "solid-js/web";
 
 
 type InstanceInfo = {
@@ -86,35 +87,39 @@ const Page: Component = () => {
 
     return (
         <>
-            <ImageBrowser>
-            </ImageBrowser>
-            <Window
-                visible={isWindowVisible}
-                setVisible={setWindowVisible}
-                controlsConfig={currentButtons}
-            >
-                <ContentStack
-                    index={windowIndex}
-                    prevIndex={prevWindowIndex}
+            <Portal>
+                <ImageBrowser>
+                </ImageBrowser>
+            </Portal>
+            <Portal>
+                <Window
+                    visible={isWindowVisible}
+                    setVisible={setWindowVisible}
+                    controlsConfig={currentButtons}
                 >
-                    <div>
-                        <FlexBox>
-                            <Input
-                                label="Name"
-                            />
-                            <Input
-                                label="Tags"
-                            />
-                        </FlexBox>
-                    </div>
-                    <p>section 2</p>
-                    <h1>section 3</h1>
-                </ContentStack>
-                {/* <WindowControls>
-                    <Button secondary onClick={() => changeWindowIndex(false)}>Back</Button>
-                    <Button primary onClick={() => changeWindowIndex(true)}>Next</Button>
-                </WindowControls> */}
-            </Window>
+                    <ContentStack
+                        index={windowIndex}
+                        prevIndex={prevWindowIndex}
+                    >
+                        <div>
+                            <FlexBox expand>
+                                <Input
+                                    label="Name"
+                                />
+                                <Input
+                                    label="Tags"
+                                />
+                            </FlexBox>
+                        </div>
+                        <p>section 2</p>
+                        <h1>section 3</h1>
+                    </ContentStack>
+                    {/* <WindowControls>
+                        <Button secondary onClick={() => changeWindowIndex(false)}>Back</Button>
+                        <Button primary onClick={() => changeWindowIndex(true)}>Next</Button>
+                    </WindowControls> */}
+                </Window>
+            </Portal>
             <div class={css.InstancesWrapper}>
                 <div class={css.PageContent}>
                     <Button secondary onClick={() => enableCreateWindow()}>Create</Button>

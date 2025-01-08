@@ -1,17 +1,101 @@
 @import "@/uikit/styles/main";
 
-.controls-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.image-browser {
+   display: flex;
+   flex-direction: column;
+   gap: 15px;
 
-    .img-props-container {
-        width: 100%;
+    .controls-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
 
-        &>p:first-child {
-            color: @text-tertiary;
+        .img-props-container {
+            width: 100%;
+            display: flex;
+            gap: 5px;
+            overflow: hidden;
 
-            .av-text-sm-r;
+            p {
+                height: 20px;
+                width: 100%;
+                color: @text-tertiary;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
+                flex-shrink: 1;
+
+                .av-text-sm-r;
+
+                &.selected:first-child {
+                    width: fit-content;
+                    max-width: 35%;
+                    color: @text-primary;
+
+                    .av-text-sm-m;
+                }
+
+                &.selected:nth-child(2) {
+                    width: 70%;
+
+                    .av-text-sm-r;
+                }
+            }
+        }
+    }
+
+    .content-wrapper {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+        gap: 15px;
+
+        .item {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: transparent;
+            cursor: pointer;
+            border: none;
+
+            img {
+                width: 100%;
+                aspect-ratio: 1 / 1;
+                object-fit: cover;
+                border-radius: 10px;
+                -webkit-user-drag: none;
+
+                .av-no-select;
+
+                &.selected {
+                    outline: @spacing-xs solid @accent;
+                }
+            }
+
+            .descr {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+
+                p {
+                    height: 20px;
+                    margin: 0;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    white-space: nowrap;
+
+                    .av-no-select;
+
+                    &:first-child {
+                        color: @text-primary;
+                        .av-text-sm-m;
+                    }
+
+                    &:nth-child(2) {
+                        color: @text-tertiary;
+                        .av-text-xs-r;
+                    }
+                }
+            }
         }
     }
 }
