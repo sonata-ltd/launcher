@@ -27,7 +27,7 @@
 
 .button {
     width: max-content;
-    padding: 8px 15px;
+    padding: 7px 15px;
     border-radius: @btn-br;
     border: none;
     outline: none;
@@ -39,6 +39,21 @@
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
+
+
+    &.sm {
+        display: flex;
+
+        &>svg {
+            height: 20px;
+            width: 20px;
+            aspect-ratio: 1 / 1;
+        }
+    }
+
+    &.icon {
+        padding: 7px;
+    }
 
     &.primary {
         background: @btn-primary-bg;

@@ -23,14 +23,16 @@ type ButtonProps = {
     tertiary?: boolean,
     acryl?: boolean,
     disabled?: boolean,
-    size?: ButtonSizes,
-    icon?: string,
+    size?: "sm",
+    icon?: boolean,
     children?: any,
     class?: string,
     onClick?: () => void,
 }
 
 const Button: Component<ButtonProps> = (props) => {
+    let button: HTMLButtonElement | undefined = undefined;
+
     const getButtonType = () => {
         if (props.primary) return ButtonTypes.primary;
         if (props.secondary) return ButtonTypes.secondary;
@@ -40,9 +42,9 @@ const Button: Component<ButtonProps> = (props) => {
     }
 
     const animateMouseDown = (e: Event) => {
-        if (e.target && !props.disabled) {
+        if (button && !props.disabled) {
             animate(
-                e.target as HTMLElement,
+                button,
                 av.elementsPoints.button.mouseDown,
                 av.defaultAnimationType
             )
@@ -50,9 +52,9 @@ const Button: Component<ButtonProps> = (props) => {
     }
 
     const animateMouseUp = (e: Event) => {
-        if (e.target && !props.disabled) {
+        if (button && !props.disabled) {
             animate(
-                e.target as HTMLElement,
+                button,
                 av.elementsPoints.button.mouseUp,
                 av.defaultAnimationType
             )
@@ -63,13 +65,16 @@ const Button: Component<ButtonProps> = (props) => {
         <>
             <div class={props.class}>
                 <button
+                    ref={button}
                     class={styles["button"]}
                     classList={{
                         [styles.primary]: getButtonType() === ButtonTypes.primary,
                         [styles.secondary]: getButtonType() === ButtonTypes.secondary,
                         [styles.tertiary]: getButtonType() === ButtonTypes.tertiary,
                         [styles.acryl]: getButtonType() === ButtonTypes.acryl,
-                        [styles.disabled]: props.disabled
+                        [styles.disabled]: props.disabled,
+                        [styles.icon]: props.icon,
+                        [styles.sm]: props.size === "sm" || !props.size,
                     }}
                     onMouseDown={animateMouseDown}
                     onMouseUp={animateMouseUp}

@@ -8,7 +8,7 @@ import css from "./window.module.less";
 type ContentStackProps = {
     index: Accessor<number>,
     prevIndex: Accessor<number | undefined>,
-    children: JSX.Element[],
+    children: JSX.Element[] | JSX.Element,
 }
 
 export const ContentStack: Component<ContentStackProps> = (props) => {

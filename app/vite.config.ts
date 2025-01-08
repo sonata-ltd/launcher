@@ -11,27 +11,32 @@ import { resolve } from "node:path"
 
 
 export default defineConfig({
-  plugins: [
-    /*
-    Uncomment the following line to enable solid-devtools.
-    For more info see https://github.com/thetarnav/solid-devtools/tree/main/packages/extension#readme
-    */
-    // devtools(),
-    solidPlugin(),
-    solidSvg(),
-    tsconfigPaths(),
-  ],
-  resolve: {
-    alias: {
-      "@": resolve(__dirname, "src"),
-      "#public": resolve(__dirname, "public"),
-      "#root": resolve(__dirname)
-    }
-  },
-  server: {
-    port: 3000,
-  },
-  build: {
-    target: 'esnext',
-  },
+    plugins: [
+        /*
+        Uncomment the following line to enable solid-devtools.
+        For more info see https://github.com/thetarnav/solid-devtools/tree/main/packages/extension#readme
+        */
+        // devtools(),
+        solidPlugin(),
+        solidSvg(),
+        tsconfigPaths(),
+    ],
+    resolve: {
+        alias: {
+            "@": resolve(__dirname, "src"),
+            "#public": resolve(__dirname, "public"),
+            "#root": resolve(__dirname)
+        }
+    },
+    server: {
+        port: 1420,
+        strictPort: true,
+        watch: {
+            // 3. tell vite to ignore watching `src-tauri`
+            ignored: ["**/src-tauri/**"],
+        },
+    },
+    build: {
+        target: 'esnext',
+    },
 });

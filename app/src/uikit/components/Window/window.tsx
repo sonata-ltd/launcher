@@ -17,7 +17,9 @@ export type ButtonConfig = {
 type WindowProps = {
     visible: Accessor<boolean>,
     setVisible: Setter<boolean>,
-    controlsConfig?: Accessor<ButtonConfig[]>
+    controlsConfig?: Accessor<ButtonConfig[]>,
+    name?: string | Accessor<string>,
+    width?: number,
     children?: JSX.Element,
 }
 
@@ -63,11 +65,12 @@ export const Window: Component<WindowProps> = (props) => {
         <>
             <div
                 class={css["window"]}
+                style={`${props.width ? `max-width: ${props.width}px` : ``}`}
                 ref={window}
             >
                 <div class={css["header"]}>
                     <div class={css["name"]}>
-                        <p>Instance Creation</p>
+                        <p>{props.name || props.name?.() || "Window"}</p>
                     </div>
                     <div class={css["controls-container"]}>
                         <div class={css["minimize"]}></div>
@@ -114,5 +117,22 @@ export const WindowControls: Component<WindowControlsType> = (props) => {
         <div class={css["window-controls"]}>
             {props.children}
         </div>
+    )
+}
+
+
+type ContentWrapperProps = {
+    children: JSX.Element
+}
+
+export const ContentWrapper = (props: ContentWrapperProps) => {
+    return (
+        <>
+            <div class={css["window-content"]}>
+                <div class={css["content"]}>
+                    {props.children}
+                </div>
+            </div>
+        </>
     )
 }

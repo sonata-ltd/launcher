@@ -14,7 +14,9 @@ const Card: Component<CardProps> = (props) => {
         <>
             <div class={css["card-component"]}>
                 <div class={css["preview"]}>
-                    <Button class={css["button"]} secondary>Play</Button>
+                    <div class={css["action-container"]}>
+                        <Button class={css["button"]} secondary>Play</Button>
+                    </div>
                     <div class={css["shade"]}></div>
                     <Show
                         when={props.img}

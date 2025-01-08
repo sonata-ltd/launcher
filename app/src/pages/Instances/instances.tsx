@@ -10,6 +10,7 @@ import { FlexBox, VerticalStack, Window } from "uikit/components/Window";
 import { ButtonConfig, ContentStack, WindowControls } from "uikit/components/Window";
 import { ButtonTypes } from "uikit/components/Button/button";
 import { Input } from "uikit/components/Input";
+import { ImageBrowser } from "uikit/widgets/ImageBrowser/imageBrowser";
 
 
 type InstanceInfo = {
@@ -85,6 +86,8 @@ const Page: Component = () => {
 
     return (
         <>
+            <ImageBrowser>
+            </ImageBrowser>
             <Window
                 visible={isWindowVisible}
                 setVisible={setWindowVisible}
@@ -95,7 +98,7 @@ const Page: Component = () => {
                     prevIndex={prevWindowIndex}
                 >
                     <div>
-                        <FlexBox expand>
+                        <FlexBox>
                             <Input
                                 label="Name"
                             />

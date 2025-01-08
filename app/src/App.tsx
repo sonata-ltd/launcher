@@ -1,5 +1,5 @@
 import { createEffect, For, onMount, Show, useContext, type Component } from 'solid-js';
-import Header from 'components/Header/header';
+import Header from 'widgets/Header/header';
 import { TabsProvider } from 'data/tabs';
 import { createOverlayScrollbars } from 'overlayscrollbars-solid';
 import 'overlayscrollbars/overlayscrollbars.css';
@@ -12,6 +12,7 @@ import { RenderRoute, useLocalRouter } from 'data/localRouter';
 import "./App.css";
 import { LoggerProvider } from 'data/logger';
 import { KeepAliveWrapper, KeepAliveProvider } from 'data/keepAlive';
+import { LSManagerProvider } from 'data/localStorageManagment/provider';
 
 
 const App: Component = (props: any) => {
@@ -40,7 +41,9 @@ const App: Component = (props: any) => {
                     <TabsProvider>
                         <Header />
                     </TabsProvider>
-                    <RenderRoute keepAlive="cacheAll" />
+                    <LSManagerProvider>
+                        <RenderRoute keepAlive="cacheAll" />
+                    </LSManagerProvider>
                 </InstancesStateProvider>
             </WebSocketProvider>
         </>
