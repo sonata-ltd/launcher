@@ -4,6 +4,8 @@ import solidPlugin from 'vite-plugin-solid';
 import solidSvg from 'vite-plugin-solid-svg';
 // import devtools from 'solid-devtools/vite';
 
+import { comlink } from 'vite-plugin-comlink';
+
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 import path from 'node:path'
@@ -12,6 +14,7 @@ import { resolve } from "node:path"
 
 export default defineConfig({
     plugins: [
+        comlink(),
         /*
         Uncomment the following line to enable solid-devtools.
         For more info see https://github.com/thetarnav/solid-devtools/tree/main/packages/extension#readme
@@ -21,6 +24,9 @@ export default defineConfig({
         solidSvg(),
         tsconfigPaths(),
     ],
+    worker: {
+        plugins: () => [comlink()],
+    },
     resolve: {
         alias: {
             "@": resolve(__dirname, "src"),

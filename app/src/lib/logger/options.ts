@@ -38,7 +38,7 @@ export const defaultLoggerSettings: LoggerSettingsType = {
     },
     wsManager: {
         name: "WebSocketManager",
-        enable: true,
+        enable: false,
         connectionFailed: true,
     }
 }

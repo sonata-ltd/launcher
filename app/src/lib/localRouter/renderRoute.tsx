@@ -3,8 +3,8 @@ import { useLocalRouter } from "./localRouter";
 import { routes } from "routes";
 
 import css from "./renderRoute.module.less";
-import { useLogger } from "data/logger";
-import { KeepAliveProvider, KeepAliveWrapper } from "data/keepAlive";
+import { useLogger } from "lib/logger";
+import { KeepAliveProvider, KeepAliveWrapper } from "lib/keepAlive";
 
 
 interface RenderRouteProps {

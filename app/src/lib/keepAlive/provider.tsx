@@ -1,4 +1,4 @@
-import { useLogger } from "data/logger";
+import { useLogger } from "lib/logger";
 import { Accessor, createContext, createSignal, Owner, ParentProps, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore } from "solid-js/store";

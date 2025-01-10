@@ -1,4 +1,4 @@
-import { useWebSockets } from "data/wsManagment";
+import { useWebSockets } from "lib/wsManagment";
 import { Accessor, createContext, createEffect, createSignal, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore } from "solid-js/store";

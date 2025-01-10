@@ -1,26 +1,28 @@
 import { Accessor, createEffect, createRoot, createSignal, For, Setter, Show } from "solid-js"
 import { ContentStack, Window } from "uikit/components/Window";
+import ImageProcessorWorker from "@/lib/webWorkers/imageProcessor.ts?worker";
 
 import css from "./imageBrowser.module.less";
 import Button from "uikit/components/Button";
 import { ContentWrapper, WindowControls } from "uikit/components/Window/window";
 import { Layout_Grid_01 } from "components/Icons/layout-grid-01";
-import { useLSManager } from "data/DBInterface/provider";
 import { createSign } from "node:crypto";
 import { ButtonTypes } from "uikit/components/Button/button";
+import { ContentLoadingIndicator } from "uikit/components/Indication/loading";
+import { wrap } from "comlink";
+import { ImageWorkerAPI } from "lib/webWorkers/imageProcessor";
+import { useDBData } from "lib/dbInterface/provider";
+import { InsertionImagesStore, LocalImageElement, LocalImageEntry } from "lib/dbInterface/images/handler";
+import { createStore } from "solid-js/store";
 
-
-type LocalImageEntry = {
-    id: string,
-    name: string,
-    src: string
-}
 
 type ImageBroserProps = {
     zIndex?: number,
     imageUrl: Setter<string>,
     visible: Accessor<boolean>
 }
+
+const imageProcessor = wrap<ImageWorkerAPI>(new ImageProcessorWorker());
 
 export const ImageBrowser = (props: ImageBroserProps) => {
     const tauriAvailable = window.__TAURI__;
@@ -31,87 +33,22 @@ export const ImageBrowser = (props: ImageBroserProps) => {
         undefined | { name: string, secondAttribute: string }
     >(undefined);
 
+    const [images, setImages] = createSignal<undefined | LocalImageElement[]>(undefined);
+    const [insertionImages, setInsertionImages] = createStore<InsertionImagesStore>({
+        isRunning: false,
+        inserted: 0,
+        total: 0
+    });
 
-    const [db, setDB] = createSignal<IDBDatabase | null>(null);
-    const [images, setImages] = createSignal<undefined | LocalImageEntry[]>(undefined);
-
-    const genFileId = async (file: File) => {
-        const arrayBuffer = await file.arrayBuffer();
-        const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-
-        return hashHex;
-    }
-
-    const fetchImages = () => {
-        if (!db()) return;
-
-        const transaction = db()!.transaction("images", "readonly");
-        const store = transaction.objectStore("images");
-
-        const req = store.getAll()
-
-        req.onsuccess = () => {
-            setImages(req.result as LocalImageEntry[]);
-        }
-
-        req.onerror = (e) => {
-            console.error(e);
-        }
-    }
-
-    const saveImage = async (file: File) => {
-        if (!db()) {
-            console.warn("DB is not init");
-            return;
-        }
-
-        const reader = new FileReader();
-
-        reader.onload = async () => {
-            const id = await genFileId(file);
-            const transaction = db()!.transaction("images", "readwrite");
-            const store = transaction.objectStore("images");
-
-            store.add({ id, name: file.name,  src: reader.result });
-            transaction.oncomplete = () => fetchImages();
-        }
-
-        reader.onerror = (e) => {
-            console.error(e);
-        }
-
-        reader.readAsDataURL(file);
-    }
+    const [dbMethods] = useDBData();
 
     createEffect(() => {
-        console.log(images());
-    })
+        const reactiveImages = dbMethods.getImages();
+        const value = reactiveImages();
 
-    createEffect(() => {
-        const req = indexedDB.open("localImages", 1);
-
-        req.onupgradeneeded = () => {
-            const db = req.result;
-
-            if (!db.objectStoreNames.contains("images")) {
-                db.createObjectStore("images", { keyPath: "id" });
-            }
+        if (value !== null) {
+            setImages(value);
         }
-
-        req.onerror = (e) => {
-            console.error(e);
-        }
-
-        req.onsuccess = (e) => {
-            setDB(req.result);
-            fetchImages();
-        }
-    })
-
-    createEffect(() => {
-        console.log("dbData update: ", db());
     })
 
 
@@ -141,15 +78,13 @@ export const ImageBrowser = (props: ImageBroserProps) => {
             input.multiple = true;
             input.accept = "image/png, image/jpeg, image/gif, image/svg";
 
-            input.onchange = () => {
+            input.onchange = async () => {
                 const rawInput = input.files;
                 if (rawInput) {
                     const files = Array.from(rawInput);
                     console.log('File is chosen using default dialog:', files);
 
-                    files.forEach((file) => {
-                        saveImage(file);
-                    })
+                    await dbMethods.setImages(files, setInsertionImages);
 
                     setUIBlocked(false);
                 }
@@ -161,7 +96,7 @@ export const ImageBrowser = (props: ImageBroserProps) => {
 
 
     createEffect(() => {
-        console.log(selectedImage());
+        console.log(insertionImages.isRunning);
     })
 
     return (
@@ -176,7 +111,11 @@ export const ImageBrowser = (props: ImageBroserProps) => {
                     <Show
                         when={images() !== undefined}
                         fallback={
-                            <p>Loading...</p>
+                            <div class={css["indicator-wrapper"]}>
+                                <ContentLoadingIndicator
+                                    processName="Extracting Images..."
+                                />
+                            </div>
                         }
                     >
                         <div class={css["image-browser"]}>
@@ -213,7 +152,7 @@ export const ImageBrowser = (props: ImageBroserProps) => {
                                                 onClick={() => setSelectedImage({ name: image.name, secondAttribute: image.id })}
                                         >
                                             <img
-                                                src={image.src}
+                                                src={image.preview}
                                                 classList={{
                                                     [css["selected"]]: image.id === selectedImage()?.secondAttribute
                                                 }}

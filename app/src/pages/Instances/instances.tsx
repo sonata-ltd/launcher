@@ -2,9 +2,9 @@ import { Component, createEffect, createSignal, For } from "solid-js";
 import Card from "uikit/components/Card";
 
 import css from "./instances.module.less";
-import { useWebSockets } from "data/wsManagment";
+import { useWebSockets } from "lib/wsManagment";
 import { createStore } from "solid-js/store";
-import { InstancesStateProvider, useInstancesState } from "data/instancesManagment";
+import { InstancesStateProvider, useInstancesState } from "lib/instancesManagment";
 import Button from "uikit/components/Button";
 import { FlexBox, VerticalStack, Window } from "uikit/components/Window";
 import { ButtonConfig, ContentStack, WindowControls } from "uikit/components/Window";

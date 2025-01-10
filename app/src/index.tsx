@@ -9,8 +9,8 @@ import { routeNames, routes } from './routes';
 
 import News from "@/pages/NewsList/news";
 import { KeepAlive, KeepAliveProvider } from '@/data/keepAlive';
-import { LocalRouterProvider } from 'data/localRouter';
-import { LoggerProvider } from 'data/logger';
+import { LocalRouterProvider } from 'lib/localRouter';
+import { LoggerProvider } from 'lib/logger';
 
 
 const root = document.getElementById('root');

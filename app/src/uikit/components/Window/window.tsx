@@ -6,6 +6,9 @@ import { animationValues as av } from '../definitions';
 import css from "./window.module.less";
 import Button from "../Button";
 import { ButtonTypes } from "../Button/button";
+import { createOverlayScrollbars, OverlayScrollbarsComponent } from "overlayscrollbars-solid";
+import { OverlayScrollbars } from "overlayscrollbars";
+import { useLogger } from "lib/logger";
 
 
 export type ButtonConfig = {
@@ -24,15 +27,20 @@ type WindowProps = {
 }
 
 export const Window: Component<WindowProps> = (props) => {
+    const [{ logw }] = useLogger();
+
     // Prevent window animation instantly after component render
     let enableAnims = false;
     let window: HTMLDivElement | undefined = undefined;
+    let windowContentWrapper: HTMLDivElement | undefined = undefined;
 
     createEffect(() => {
         if (window) {
 
-            // Animate window closing
+            // Animate window opening
             if (props.visible()) {
+                console.log("Animate opening");
+
                 window.style.display = "block";
 
                 animate(
@@ -43,8 +51,10 @@ export const Window: Component<WindowProps> = (props) => {
 
                 enableAnims = true;
 
-            // Animate window opening
+            // Animate window closing
             } else if (props.visible() === false && enableAnims !== false) {
+                console.log("Animate closing");
+
                 animate(
                     window,
                     av.elementsPoints.window.close,
@@ -53,6 +63,9 @@ export const Window: Component<WindowProps> = (props) => {
                     window.style.display = "none";
                 })
             }
+        } else {
+            //logw("")
+            console.warn("Not found");
         }
     })
 

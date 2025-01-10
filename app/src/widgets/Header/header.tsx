@@ -6,9 +6,9 @@ import styles from './header.module.less';
 import Icon from "@/assets/images/home.svg";
 import { createOverlayScrollbars } from 'overlayscrollbars-solid';
 import 'overlayscrollbars/overlayscrollbars.css';
-import { useTabs } from 'data/tabs';
+import { useTabs } from 'lib/tabs';
 import HeaderAnimation from './anims';
-import { useLocalRouter } from 'data/localRouter';
+import { useLocalRouter } from 'lib/localRouter';
 
 export const tabStyles = {
     enter: {

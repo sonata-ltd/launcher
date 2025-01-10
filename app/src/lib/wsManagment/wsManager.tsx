@@ -2,7 +2,7 @@ import { createContext, useContext, JSX } from "solid-js";
 import { createStore, Store } from "solid-js/store";
 import { createSignal, onCleanup } from "solid-js";
 import { wsNames } from "./types";
-import { useLogger } from "data/logger";
+import { useLogger } from "lib/logger";
 
 
 interface ManagedWebSocket {

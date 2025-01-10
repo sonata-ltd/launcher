@@ -19,12 +19,14 @@
     "solid-devtools": "^0.29.2",
     "typescript": "^5.3.3",
     "vite": "^5.0.11",
+    "vite-plugin-comlink": "^5.1.0",
     "vite-plugin-solid": "^2.8.2",
     "vite-tsconfig-paths": "^5.1.2"
   },
   "dependencies": {
     "@solidjs/router": "^0.15.1",
     "@tauri-apps/cli": "^2",
+    "comlink": "^4.4.2",
     "motion": "^11.11.17",
     "overlayscrollbars": "^2.10.0",
     "overlayscrollbars-solid": "^0.5.5",

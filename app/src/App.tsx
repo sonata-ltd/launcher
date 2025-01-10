@@ -1,18 +1,18 @@
 import { createEffect, For, onMount, Show, useContext, type Component } from 'solid-js';
 import Header from 'widgets/Header/header';
-import { TabsProvider } from 'data/tabs';
+import { TabsProvider } from 'lib/tabs';
 import { createOverlayScrollbars } from 'overlayscrollbars-solid';
 import 'overlayscrollbars/overlayscrollbars.css';
-import { WebSocketProvider } from 'data/wsManagment';
-import { InstancesStateProvider } from 'data/instancesManagment';
+import { WebSocketProvider } from 'lib/wsManagment';
+import { InstancesStateProvider } from 'lib/instancesManagment';
 import { Route, Router } from '@solidjs/router';
 import { routes } from 'routes';
-import { RenderRoute, useLocalRouter } from 'data/localRouter';
+import { RenderRoute, useLocalRouter } from 'lib/localRouter';
 
 import "./App.css";
-import { LoggerProvider } from 'data/logger';
-import { KeepAliveWrapper, KeepAliveProvider } from 'data/keepAlive';
-import { LSManagerProvider } from 'data/DBInterface/provider';
+import { LoggerProvider } from 'lib/logger';
+import { KeepAliveWrapper, KeepAliveProvider } from 'lib/keepAlive';
+import { DBDataProvider } from 'lib/dbInterface/provider';
 
 
 const App: Component = (props: any) => {
@@ -41,7 +41,9 @@ const App: Component = (props: any) => {
                     <TabsProvider>
                         <Header />
                     </TabsProvider>
+                    <DBDataProvider>
                         <RenderRoute keepAlive="cacheAll" />
+                    </DBDataProvider>
                 </InstancesStateProvider>
             </WebSocketProvider>
         </>
