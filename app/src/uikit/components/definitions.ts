@@ -17,6 +17,9 @@ export const animationValues = {
                 top: ["0px", "-50px"],
                 opacity: [1, 0]
             }
+        },
+        contentLoadingIndicator: {
+            animationType: { type: spring, bounce: 0.3, duration: 0.7 },
         }
     }
 }

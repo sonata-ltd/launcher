@@ -34,7 +34,7 @@ const genFilePreview = async (file: File, maxSize?: number): Promise<Blob> => {
     return new Promise((res, rej) => {
         const reader = new FileReader();
 
-        console.log(file);
+        // console.log(file);
 
         reader.onload = async () => {
             const imgData = reader.result as string;

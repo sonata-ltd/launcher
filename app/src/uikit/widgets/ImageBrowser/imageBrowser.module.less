@@ -17,11 +17,53 @@
         align-items: center;
         gap: 10px;
 
+        .info-container {
+            width: 100%;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .uploading-container {
+            width: 0;
+            overflow-x: clip;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            will-change: auto;
+
+            .gradient-shade {
+                width: 10px;
+                height: 100%;
+                position: absolute;
+                background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, #FFFFFF 100%);
+                right: 0;
+            }
+
+            div {
+                padding: 0;
+                overflow: hidden;
+                flex-shrink: 0;
+
+                p {
+                    height: 20px;
+                    color: @text-primary;
+
+                    .av-text-sm-m;
+                }
+
+                svg > path {
+                    stroke: @text-primary;
+                }
+            }
+        }
+
         .img-props-container {
             width: 100%;
             display: flex;
             gap: 5px;
             overflow: hidden;
+            padding-left: 0px;
 
             p {
                 height: 20px;
@@ -64,17 +106,41 @@
             cursor: pointer;
             border: none;
 
-            img {
+            .img-container {
                 width: 100%;
                 aspect-ratio: 1 / 1;
-                object-fit: cover;
-                border-radius: 10px;
-                -webkit-user-drag: none;
+                position: relative;
 
-                .av-no-select;
+                .shade {
+                    position: absolute;
+                    background: @gray-50;
+                    width: 100%;
+                    aspect-ratio: 1 / 1;
+                    border-radius: 10px;
+                    z-index: 1;
 
-                &.selected {
-                    outline: @spacing-xs solid @accent;
+                    &.disable {
+                        animation: disable-shade 0.3s forwards;
+                    }
+                }
+
+                img {
+                    width: 100%;
+                    aspect-ratio: 1 / 1;
+                    object-fit: cover;
+                    border-radius: 10px;
+                    -webkit-user-drag: none;
+                    scale: 0.9;
+
+                    .av-no-select;
+
+                    &.selected {
+                        outline: @spacing-xs solid @accent;
+                    }
+
+                    &.view-available {
+                        animation: scale-image 0.3s forwards;
+                    }
                 }
             }
 
@@ -104,5 +170,18 @@
                 }
             }
         }
+    }
+}
+
+
+@keyframes disable-shade {
+    to {
+        background: transparent;
+    }
+}
+
+@keyframes scale-image {
+    to {
+        scale: 1;
     }
 }

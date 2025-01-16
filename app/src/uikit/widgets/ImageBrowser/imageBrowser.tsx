@@ -14,6 +14,8 @@ import { ImageWorkerAPI } from "lib/webWorkers/imageProcessor";
 import { useDBData } from "lib/dbInterface/provider";
 import { InsertionImagesStore, LocalImageElement, LocalImageEntry } from "lib/dbInterface/images/handler";
 import { createStore } from "solid-js/store";
+import { animate, spring } from "motion";
+import { animationValues as av } from '../../components/definitions';
 
 
 type ImageBroserProps = {
@@ -34,23 +36,73 @@ export const ImageBrowser = (props: ImageBroserProps) => {
     >(undefined);
 
     const [images, setImages] = createSignal<undefined | LocalImageElement[]>(undefined);
+
     const [insertionImages, setInsertionImages] = createStore<InsertionImagesStore>({
-        isRunning: false,
-        inserted: 0,
-        total: 0
+        images: [],
+        inserted: -1,
+        lastOperation: {
+            isRunning: false,
+            inserted: 0,
+            total: 0,
+        }
     });
+
+    const [lastInsertion, setLastInsertion] = createStore(insertionImages.lastOperation);
 
     const [dbMethods] = useDBData();
 
+    const [infoContainer, setInfoContainer] = createSignal<HTMLDivElement>();
+    const [uploadingContainer, setUploadingContainer] = createSignal<HTMLDivElement>();
+    const [uploadingContentWrapper, setUploadingContentWrapper] = createSignal<HTMLDivElement>();
+    const [uploadingMessage, setUploadingMessage] = createSignal<string>("Uploading 0/0");
+    const [imagesBuffer, setImagesBuffer] = createSignal<LocalImageElement[]>([]);
+
+    let insertedImagesCount: number | null = null;
+
     createEffect(() => {
-        const reactiveImages = dbMethods.getImages();
-        const value = reactiveImages();
+        const images = dbMethods.getImages();
+        const value = images();
 
         if (value !== null) {
-            setImages(value);
+            setInsertionImages("images", (prev) => {
+                if (prev.length) {
+                    let i = insertionImages.inserted;
+
+                    return prev.map((item) => {
+                        const i = insertionImages.inserted;
+
+                        if (item.preview === "undefined" && i < value.length) {
+                            const newItem = value[i];
+                            setInsertionImages("inserted", (prev) => prev + 1);
+                            return newItem;
+                        }
+
+                        return item;
+                    })
+                } else {
+                    // Correct `inserted` reactive value on first images get
+                    setInsertionImages("inserted", value.length);
+                    return value;
+                }
+            })
         }
     })
 
+    createEffect(() => {
+        console.log(insertionImages.inserted);
+    })
+
+    const countDigits = (num: number): number => {
+        if (num === 0) return 1;
+        return Math.floor(Math.log10(Math.abs(num))) + 1;
+    }
+
+    const measureTime = (fn: () => void): number => {
+        const start = performance.now();
+        fn();
+        const end = performance.now();
+        return end - start;
+    }
 
     const pickImage = async () => {
         setUIBlocked(true);
@@ -84,9 +136,27 @@ export const ImageBrowser = (props: ImageBroserProps) => {
                     const files = Array.from(rawInput);
                     console.log('File is chosen using default dialog:', files);
 
-                    await dbMethods.setImages(files, setInsertionImages);
+                    setLastInsertion("total", files.length);
+                    animateUploadingContainer(true);
+                    setInsertionImages("images", (prev) => [
+                        ...prev,
+                        ...Array.from({ length: files.length }, () => ({
+                            id: "Awaiting upload",
+                            name: "Uploading...",
+                            preview: "undefined",
+                            src: "undefined"
+                        }))
+                    ])
 
-                    setUIBlocked(false);
+                    await dbMethods.setImages(files, setLastInsertion);
+
+                    setLastInsertion("isRunning", false);
+
+                    setTimeout(() => {
+                        animateUploadingContainer(false, () => {
+                            setLastInsertion("isRunning", false);
+                        });
+                    }, 1200)
                 }
             };
 
@@ -94,10 +164,83 @@ export const ImageBrowser = (props: ImageBroserProps) => {
         // }
     };
 
+    const calcStringWidth = (
+        text: string,
+        font: string = "14px Inter"
+    ): number => {
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        if (!context) return 0;
+
+        context.font = font;
+        return context.measureText(text).width;
+    }
+
+
+    const animateUploadingContainer = (show: boolean, fn?: () => void) => {
+        const el = uploadingContainer();
+        const uploadingContentWrapperEl = uploadingContentWrapper();
+        const containerChilds = infoContainer()?.childNodes;
+        if (!el || !uploadingContentWrapperEl || !containerChilds) return;
+
+        const uploadingMessagePadding = calcStringWidth(uploadingMessage());
+        const digitsPadding = lastInsertion.total;
+        const spinnerWidth = 20;
+
+        const totalWidth = spinnerWidth + uploadingMessagePadding + digitsPadding;
+        const extraPadding = 10;
+
+        let nextEl;
+
+        if (containerChilds[0] === el) {
+            nextEl = containerChilds[1] as HTMLElement;
+        }
+
+        if (show) {
+            animate(
+                el,
+                {
+                    width: ["0", `${totalWidth}px`],
+                    paddingLeft: ["0", `${extraPadding}px`],
+                    paddingRight: ["0", `${extraPadding}px`]
+                },
+                av.defaultAnimationType
+            )
+
+            if (nextEl) {
+                animate(
+                    nextEl,
+                    { paddingLeft: ["0", `${extraPadding}px`] },
+                    av.defaultAnimationType
+                )
+            }
+        } else {
+            animate(
+                el,
+                {
+                    width: [`${totalWidth}px`, "0"],
+                    paddingLeft: [`${extraPadding}px`, "0"],
+                    paddingRight: [`${extraPadding}px`, "0"]
+                },
+                av.defaultAnimationType
+            ).then(() => {
+                if (fn) fn();
+            })
+
+            if (nextEl) {
+                animate(
+                    nextEl,
+                    { paddingLeft: [`${extraPadding}px`, "0"] },
+                    av.defaultAnimationType
+                )
+            }
+        }
+    }
 
     createEffect(() => {
-        console.log(insertionImages.isRunning);
+        setUploadingMessage(`Uploading ${lastInsertion.inserted}/${lastInsertion.total}`);
     })
+
 
     return (
         <>
@@ -109,7 +252,7 @@ export const ImageBrowser = (props: ImageBroserProps) => {
             >
                 <ContentWrapper>
                     <Show
-                        when={images() !== undefined}
+                        when={true}
                         fallback={
                             <div class={css["indicator-wrapper"]}>
                                 <ContentLoadingIndicator
@@ -126,37 +269,63 @@ export const ImageBrowser = (props: ImageBroserProps) => {
                                 >
                                     Add
                                 </Button>
-                                <div class={css["img-props-container"]}>
-                                    {selectedImage() === undefined
-                                        ? (
-                                            <p>No Image Selected</p>
-                                        )
-                                        : (
-                                            <>
-                                                <p class={css["selected"]}>{selectedImage()?.name}</p>
-                                                <p class={css["selected"]}>{selectedImage()?.secondAttribute}</p>
-                                            </>
-                                        )
-                                    }
+                                <div
+                                    class={css["info-container"]}
+                                    ref={setInfoContainer}
+                                >
+                                    <div
+                                        class={css["uploading-container"]}
+                                        ref={setUploadingContainer}
+                                    >
+                                        <div class={css["gradient-shade"]}></div>
+                                        <ContentLoadingIndicator
+                                            processName={uploadingMessage()}
+                                            spinnerSize={20}
+                                            ref={setUploadingContentWrapper}
+                                            done={!lastInsertion.isRunning}
+                                        />
+                                    </div>
+                                    <div class={css["img-props-container"]}>
+                                        {selectedImage() === undefined
+                                            ? (
+                                                <p>No Image Selected</p>
+                                            )
+                                            : (
+                                                <>
+                                                    <p class={css["selected"]}>{selectedImage()?.name}</p>
+                                                    <p class={css["selected"]}>{selectedImage()?.secondAttribute}</p>
+                                                </>
+                                            )
+                                        }
+                                    </div>
                                 </div>
                                 <Button secondary icon>
                                     <Layout_Grid_01 />
                                 </Button>
                             </div>
                             <div class={css["content-wrapper"]}>
-                                <For each={images()}>
+                                <For each={insertionImages.images}>
                                 {(image, i) => (
                                     <>
                                         <button
                                             class={css["item"]}
                                                 onClick={() => setSelectedImage({ name: image.name, secondAttribute: image.id })}
                                         >
-                                            <img
-                                                src={image.preview}
-                                                classList={{
-                                                    [css["selected"]]: image.id === selectedImage()?.secondAttribute
-                                                }}
-                                            />
+                                            <div class={css["img-container"]}>
+                                                <div
+                                                    class={css["shade"]}
+                                                    classList={{
+                                                        [css["disable"]]: image.preview !== "undefined" && image.preview !== ""
+                                                    }}
+                                                ></div>
+                                                <img
+                                                    src={image.preview}
+                                                    classList={{
+                                                        [css["selected"]]: image.id === selectedImage()?.secondAttribute,
+                                                        [css["view-available"]]: image.preview !== "undefined" && image.preview !== ""
+                                                    }}
+                                                />
+                                            </div>
                                             <div class={css["descr"]}>
                                                 <p>{image.name}</p>
                                                 <p>{image.id}</p>

@@ -21,10 +21,16 @@ export type LocalImageElement = LocalImage & {
     preview: string
 }
 
-export type InsertionImagesStore = {
+export type InsertionOperation = {
     isRunning: boolean,
     inserted: number,
     total: number
+}
+
+export type InsertionImagesStore = {
+    images: LocalImageElement[],
+    inserted: number,
+    lastOperation: InsertionOperation
 }
 
 type ImageHandlerProps = {
@@ -38,15 +44,15 @@ const imageProcessor = wrap<ImageWorkerAPI>(new ImageProcessorWorker());
 
 export const imageHandler = (props: ImageHandlerProps) => {
 
-    const getImages = (): Accessor<LocalImageElement[] | null> => {
+    const getImages = (setReactiveImagesBuffer?: Setter<LocalImageElement[]>): Accessor<LocalImageElement[] | null> => {
         if (props.extractedIDBData() !== null)
             return props.extractedIDBData;
 
-        requestImagesExtraction();
+        requestImagesExtraction(setReactiveImagesBuffer);
         return props.extractedIDBData;
     }
 
-    const setImages = (files: File[], setInsertionStore: SetStoreFunction<InsertionImagesStore>): Promise<void> => {
+    const setImages = (files: File[], setInsertionStore: SetStoreFunction<InsertionOperation>): Promise<void> => {
         return new Promise<void>((res, rej) => {
             requestImagesInsertion(files, setInsertionStore)
                 .then(() => res())
@@ -57,13 +63,12 @@ export const imageHandler = (props: ImageHandlerProps) => {
         })
     }
 
-    const requestImagesInsertion = async (files: File[], setInsertionStore: SetStoreFunction<InsertionImagesStore>) => {
+    const requestImagesInsertion = async (files: File[], setLastInsertion: SetStoreFunction<InsertionOperation>) => {
         const dbInstance = props.db();
         if (!dbInstance) return;
 
-        setInsertionStore("isRunning", true);
-        setInsertionStore("inserted", 0);
-        setInsertionStore("total", files.length);
+        setLastInsertion("isRunning", true);
+        setLastInsertion("inserted", 0);
 
         try {
             for (const file of files) {
@@ -96,7 +101,7 @@ export const imageHandler = (props: ImageHandlerProps) => {
                             }
                         })
 
-                        setInsertionStore("inserted", (prev) => prev + 1);
+                        setLastInsertion("inserted", (prev) => prev + 1);
 
                         res();
                     }
@@ -108,22 +113,16 @@ export const imageHandler = (props: ImageHandlerProps) => {
         } catch (e) {
             console.error(e);
         }
-
-        setInsertionStore("isRunning", false);
-        setInsertionStore("inserted", 0);
-        setInsertionStore("total", 0);
     }
 
-    const requestImagesExtraction = async () => {
+    const requestImagesExtraction = async (setReactiveImagesBuffer?: Setter<LocalImageElement[]>) => {
+        const imagesBuffer: LocalImageElement[] = [];
+
         const dbInstance = props.db();
         if (!dbInstance) return;
 
         const transaction = dbInstance.transaction("images", "readonly");
         const store = transaction.objectStore("images");
-
-        const imagesBuffer: LocalImageElement[] = [];
-
-        console.log("start");
 
         await new Promise<void>((res, rej) => {
             const req = store.openCursor()
@@ -140,11 +139,18 @@ export const imageHandler = (props: ImageHandlerProps) => {
                     } as LocalImageElement;
 
                     imagesBuffer.push(valueWithBlob);
+                    if (setReactiveImagesBuffer) {
+                        setReactiveImagesBuffer((prev) => [
+                            ...prev,
+                            valueWithBlob
+                        ])
+
+                        console.log(valueWithBlob);
+                    }
 
                     cursor.continue();
                 } else {
                     props.setExtractedIDBData(imagesBuffer);
-                    console.log("EXTRACTED!!!!!");
                     res();
                 }
             }

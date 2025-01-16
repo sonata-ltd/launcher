@@ -24,6 +24,7 @@
     "vite-tsconfig-paths": "^5.1.2"
   },
   "dependencies": {
+    "@solid-devtools/overlay": "^0.33.0",
     "@solidjs/router": "^0.15.1",
     "@tauri-apps/cli": "^2",
     "comlink": "^4.4.2",

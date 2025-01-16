@@ -1,6 +1,6 @@
-import { Accessor, createContext, createEffect, createSignal, ParentProps, useContext } from "solid-js";
-import { createStore } from "solid-js/store";
-import { imageHandler, LocalImageElement, LocalImageEntry } from "./images/handler";
+import { Accessor, createContext, createEffect, createSignal, ParentProps, Setter, useContext } from "solid-js";
+import { createStore, SetStoreFunction } from "solid-js/store";
+import { imageHandler, InsertionImagesStore, InsertionOperation, LocalImageElement, LocalImageEntry } from "./images/handler";
 
 
 enum AcessorTypes {
@@ -13,8 +13,8 @@ export type ExtractedIDBDataType = {
 
 type Store = [
     {
-        getImages: () => Accessor<LocalImageElement[] | null>,
-        setImages: (files: File[], insertedAccessor: any) => Promise<void>
+        getImages: (setReactiveImagesBuffer?: Setter<LocalImageElement[]>) => Accessor<LocalImageElement[] | null>,
+        setImages: (files: File[], setLastInsertion: SetStoreFunction<InsertionOperation>) => Promise<void>
     }
 ]
 
@@ -25,10 +25,6 @@ export const DBDataProvider = (props: ParentProps) => {
     const [extractedIDBData, setExtractedIDBData] = createSignal<LocalImageElement[] | null>(null);
 
     const { getImages, setImages } = imageHandler({ db, setDB, extractedIDBData, setExtractedIDBData });
-
-    createEffect(() => {
-        console.log(extractedIDBData());
-    })
 
     createEffect(() => {
         const req = indexedDB.open("localImages", 1);

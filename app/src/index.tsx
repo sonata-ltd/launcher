@@ -13,6 +13,7 @@ import { LocalRouterProvider } from 'lib/localRouter';
 import { LoggerProvider } from 'lib/logger';
 
 
+
 const root = document.getElementById('root');
 
 if (import.meta.env.DEV && !(root instanceof HTMLElement)) {

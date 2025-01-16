@@ -39,7 +39,6 @@ export const Window: Component<WindowProps> = (props) => {
 
             // Animate window opening
             if (props.visible()) {
-                console.log("Animate opening");
 
                 window.style.display = "block";
 
@@ -53,7 +52,6 @@ export const Window: Component<WindowProps> = (props) => {
 
             // Animate window closing
             } else if (props.visible() === false && enableAnims !== false) {
-                console.log("Animate closing");
 
                 animate(
                     window,
