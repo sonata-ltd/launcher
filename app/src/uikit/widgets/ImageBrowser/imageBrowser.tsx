@@ -16,12 +16,14 @@ import { InsertionImagesStore, LocalImageElement, LocalImageEntry } from "lib/db
 import { createStore } from "solid-js/store";
 import { animate, spring } from "motion";
 import { animationValues as av } from '../../components/definitions';
+import { calcStringWidth } from "utils/renderedObjectsCalc";
 
 
 type ImageBroserProps = {
     zIndex?: number,
-    imageUrl: Setter<string>,
-    visible: Accessor<boolean>
+    setImageSrc: Setter<null | string>,
+    visible: Accessor<boolean>,
+    setVisible: Setter<boolean>
 }
 
 const imageProcessor = wrap<ImageWorkerAPI>(new ImageProcessorWorker());
@@ -29,8 +31,6 @@ const imageProcessor = wrap<ImageWorkerAPI>(new ImageProcessorWorker());
 export const ImageBrowser = (props: ImageBroserProps) => {
     const tauriAvailable = window.__TAURI__;
 
-    const [isWindowVisible, setWindowVisible] = createSignal(true);
-    const [isUIBlocked, setUIBlocked] = createSignal(false);
     const [selectedImage, setSelectedImage] = createSignal<
         undefined | { name: string, secondAttribute: string }
     >(undefined);
@@ -55,9 +55,7 @@ export const ImageBrowser = (props: ImageBroserProps) => {
     const [uploadingContainer, setUploadingContainer] = createSignal<HTMLDivElement>();
     const [uploadingContentWrapper, setUploadingContentWrapper] = createSignal<HTMLDivElement>();
     const [uploadingMessage, setUploadingMessage] = createSignal<string>("Uploading 0/0");
-    const [imagesBuffer, setImagesBuffer] = createSignal<LocalImageElement[]>([]);
 
-    let insertedImagesCount: number | null = null;
 
     createEffect(() => {
         const images = dbMethods.getImages();
@@ -71,7 +69,7 @@ export const ImageBrowser = (props: ImageBroserProps) => {
                     return prev.map((item) => {
                         const i = insertionImages.inserted;
 
-                        if (item.preview === "undefined" && i < value.length) {
+                        if (item.preview === undefined && i < value.length) {
                             const newItem = value[i];
                             setInsertionImages("inserted", (prev) => prev + 1);
                             return newItem;
@@ -88,94 +86,43 @@ export const ImageBrowser = (props: ImageBroserProps) => {
         }
     })
 
-    createEffect(() => {
-        console.log(insertionImages.inserted);
-    })
-
-    const countDigits = (num: number): number => {
-        if (num === 0) return 1;
-        return Math.floor(Math.log10(Math.abs(num))) + 1;
-    }
-
-    const measureTime = (fn: () => void): number => {
-        const start = performance.now();
-        fn();
-        const end = performance.now();
-        return end - start;
-    }
-
     const pickImage = async () => {
-        setUIBlocked(true);
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        input.accept = "image/png, image/jpeg, image/gif, image/svg";
 
-        // Check tauri API availability
-        // if (tauriAvailable) {
-        //     try {
-        //         const { open } = window.__TAURI__.dialog;
-        //         const input = await open({
-        //             multiple: true,
-        //             directory: false,
-        //         });
+        input.onchange = async () => {
+            const rawInput = input.files;
+            if (rawInput) {
+                const files = Array.from(rawInput);
+                console.log('File is chosen using default dialog:', files);
 
-        //         console.log(input);
+                setLastInsertion("total", files.length);
+                animateUploadingContainer(true);
+                setInsertionImages("images", (prev) => [
+                    ...prev,
+                    ...Array.from({ length: files.length }, () => ({
+                        id: "Awaiting upload",
+                        name: "Uploading...",
+                        preview: undefined,
+                    } as LocalImageElement))
+                ])
 
-        //         setUIBlocked(false);
-        //     } catch (error) {
-        //         console.error('Failed to open dialog using Tauri API:', error);
+                await dbMethods.setImages(files, setLastInsertion);
 
-        //         setUIBlocked(false);
-        //     }
-        // } else {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.multiple = true;
-            input.accept = "image/png, image/jpeg, image/gif, image/svg";
+                setLastInsertion("isRunning", false);
 
-            input.onchange = async () => {
-                const rawInput = input.files;
-                if (rawInput) {
-                    const files = Array.from(rawInput);
-                    console.log('File is chosen using default dialog:', files);
+                setTimeout(() => {
+                    animateUploadingContainer(false, () => {
+                        setLastInsertion("isRunning", false);
+                    });
+                }, 1200)
+            }
+        };
 
-                    setLastInsertion("total", files.length);
-                    animateUploadingContainer(true);
-                    setInsertionImages("images", (prev) => [
-                        ...prev,
-                        ...Array.from({ length: files.length }, () => ({
-                            id: "Awaiting upload",
-                            name: "Uploading...",
-                            preview: "undefined",
-                            src: "undefined"
-                        }))
-                    ])
-
-                    await dbMethods.setImages(files, setLastInsertion);
-
-                    setLastInsertion("isRunning", false);
-
-                    setTimeout(() => {
-                        animateUploadingContainer(false, () => {
-                            setLastInsertion("isRunning", false);
-                        });
-                    }, 1200)
-                }
-            };
-
-            input.click();
-        // }
+        input.click();
     };
-
-    const calcStringWidth = (
-        text: string,
-        font: string = "14px Inter"
-    ): number => {
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-        if (!context) return 0;
-
-        context.font = font;
-        return context.measureText(text).width;
-    }
-
 
     const animateUploadingContainer = (show: boolean, fn?: () => void) => {
         const el = uploadingContainer();
@@ -241,12 +188,19 @@ export const ImageBrowser = (props: ImageBroserProps) => {
         setUploadingMessage(`Uploading ${lastInsertion.inserted}/${lastInsertion.total}`);
     })
 
+    const selectImage = (name: string, secondAttribute: string, preview: string | undefined) => {
+        if (preview !== undefined) {
+            setSelectedImage({ name, secondAttribute });
+            props.setImageSrc(preview);
+        }
+    }
+
 
     return (
         <>
             <Window
-                visible={isWindowVisible}
-                setVisible={setWindowVisible}
+                visible={props.visible}
+                setVisible={props.setVisible}
                 name={"Image Browser"}
                 width={750}
             >
@@ -309,13 +263,13 @@ export const ImageBrowser = (props: ImageBroserProps) => {
                                     <>
                                         <button
                                             class={css["item"]}
-                                                onClick={() => setSelectedImage({ name: image.name, secondAttribute: image.id })}
+                                                onClick={() => selectImage(image.name, image.id, image.preview)}
                                         >
                                             <div class={css["img-container"]}>
                                                 <div
                                                     class={css["shade"]}
                                                     classList={{
-                                                        [css["disable"]]: image.preview !== "undefined" && image.preview !== ""
+                                                        [css["disable"]]: image.preview !== undefined && image.preview !== ""
                                                     }}
                                                 ></div>
                                                 <img

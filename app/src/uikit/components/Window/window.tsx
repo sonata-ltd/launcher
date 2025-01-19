@@ -1,4 +1,4 @@
-import { Accessor, Component, createEffect, For, onMount, Setter, Show } from "solid-js";
+import { Accessor, Component, createEffect, createSignal, For, onMount, Setter, Show } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { animate, spring } from "motion";
 import { animationValues as av } from '../definitions';
@@ -27,7 +27,9 @@ type WindowProps = {
 }
 
 export const Window: Component<WindowProps> = (props) => {
-    const [{ logw }] = useLogger();
+    const [{ log }] = useLogger();
+
+    const [loadInternalContent, setLoadInternalContent] = createSignal(props.visible());
 
     // Prevent window animation instantly after component render
     let enableAnims = false;
@@ -41,6 +43,7 @@ export const Window: Component<WindowProps> = (props) => {
             if (props.visible()) {
 
                 window.style.display = "block";
+                setLoadInternalContent(true);
 
                 animate(
                     window,
@@ -99,7 +102,10 @@ export const Window: Component<WindowProps> = (props) => {
                         </div>
                     }
                 >
-                    {props.children}
+                    {loadInternalContent() && (() => {
+                        console.log("Window Children Load");
+                        return props.children
+                    })()}
                 </Show>
                 <Show when={props.controlsConfig}>
                     <div class={css["window-controls"]}>

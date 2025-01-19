@@ -4,6 +4,7 @@ import { ImageWorkerAPI } from "lib/webWorkers/imageProcessor";
 import ImageProcessorWorker from "@/lib/webWorkers/imageProcessor.ts?worker";
 import { preview } from "vite";
 import { SetStoreFunction } from "solid-js/store";
+import { ExtractedIDBDataType } from "../provider";
 
 
 type LocalImage = {
@@ -12,13 +13,11 @@ type LocalImage = {
 }
 
 export type LocalImageEntry = LocalImage & {
-    src: Blob,
     preview: Blob,
 }
 
 export type LocalImageElement = LocalImage & {
-    src: string,
-    preview: string
+    preview: string | undefined
 }
 
 export type InsertionOperation = {
@@ -34,22 +33,22 @@ export type InsertionImagesStore = {
 }
 
 type ImageHandlerProps = {
-    db: Accessor<IDBDatabase | null>,
-    setDB: Setter<IDBDatabase | null>,
-    extractedIDBData: Accessor<LocalImageElement[] | null>,
-    setExtractedIDBData: Setter<LocalImageElement[] | null>
+    getDBValue: (name: string) => IDBDatabase | undefined,
+    extractedLocalImages: Accessor<LocalImageElement[] | null>,
+    setExtractedLocalImages: Setter<LocalImageElement[] | null>
 }
 
 const imageProcessor = wrap<ImageWorkerAPI>(new ImageProcessorWorker());
 
 export const imageHandler = (props: ImageHandlerProps) => {
+    const dbName = "localImages";
 
     const getImages = (setReactiveImagesBuffer?: Setter<LocalImageElement[]>): Accessor<LocalImageElement[] | null> => {
-        if (props.extractedIDBData() !== null)
-            return props.extractedIDBData;
+        if (props.extractedLocalImages() !== null)
+            return props.extractedLocalImages;
 
         requestImagesExtraction(setReactiveImagesBuffer);
-        return props.extractedIDBData;
+        return props.extractedLocalImages;
     }
 
     const setImages = (files: File[], setInsertionStore: SetStoreFunction<InsertionOperation>): Promise<void> => {
@@ -64,7 +63,7 @@ export const imageHandler = (props: ImageHandlerProps) => {
     }
 
     const requestImagesInsertion = async (files: File[], setLastInsertion: SetStoreFunction<InsertionOperation>) => {
-        const dbInstance = props.db();
+        const dbInstance = props.getDBValue(dbName);
         if (!dbInstance) return;
 
         setLastInsertion("isRunning", true);
@@ -73,12 +72,15 @@ export const imageHandler = (props: ImageHandlerProps) => {
         try {
             for (const file of files) {
                 const { id, src } = await imageProcessor.processFile(file);
-                const blob = await imageProcessor.genFileBlob(file);
+
+                // I don't think that we need to store the original file
+                // const blob = await imageProcessor.genFileBlob(file);
+
                 const previewBlob = await imageProcessor.genFilePreview(file);
                 const transaction = dbInstance.transaction("images", "readwrite");
                 const store = transaction.objectStore("images");
 
-                const imageData = { id, name: file.name, src: blob, preview: previewBlob } as LocalImageEntry;
+                const imageData = { id, name: file.name, preview: previewBlob } as LocalImageEntry;
 
                 store.add(imageData);
 
@@ -86,11 +88,11 @@ export const imageHandler = (props: ImageHandlerProps) => {
                     transaction.oncomplete = () => {
                         const adaptedImageData = {
                             ...imageData,
-                            src: URL.createObjectURL(imageData.src),
+                            // src: URL.createObjectURL(imageData.src),
                             preview: URL.createObjectURL(imageData.preview)
                         } as LocalImageElement;
 
-                        props.setExtractedIDBData((prev) => {
+                        props.setExtractedLocalImages((prev) => {
                             if (prev !== null) {
                                 return [
                                     ...prev,
@@ -118,7 +120,7 @@ export const imageHandler = (props: ImageHandlerProps) => {
     const requestImagesExtraction = async (setReactiveImagesBuffer?: Setter<LocalImageElement[]>) => {
         const imagesBuffer: LocalImageElement[] = [];
 
-        const dbInstance = props.db();
+        const dbInstance = props.getDBValue(dbName);
         if (!dbInstance) return;
 
         const transaction = dbInstance.transaction("images", "readonly");
@@ -134,23 +136,21 @@ export const imageHandler = (props: ImageHandlerProps) => {
                     const value = cursor.value;
                     const valueWithBlob = {
                         ...value,
-                        preview: URL.createObjectURL(value.preview as Blob),
-                        src: URL.createObjectURL(value.src as Blob)
+                        preview: URL.createObjectURL(value.preview as Blob)
                     } as LocalImageElement;
 
                     imagesBuffer.push(valueWithBlob);
+
                     if (setReactiveImagesBuffer) {
                         setReactiveImagesBuffer((prev) => [
                             ...prev,
                             valueWithBlob
                         ])
-
-                        console.log(valueWithBlob);
                     }
 
                     cursor.continue();
                 } else {
-                    props.setExtractedIDBData(imagesBuffer);
+                    props.setExtractedLocalImages(imagesBuffer);
                     res();
                 }
             }
@@ -160,6 +160,7 @@ export const imageHandler = (props: ImageHandlerProps) => {
             }
         })
     }
+
 
     return {
         getImages,
