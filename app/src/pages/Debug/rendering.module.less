@@ -1,0 +1,97 @@
+@import "@/styles/uikit/main.less";
+
+@colors: @gray-25, @gray-50, @gray-100, @gray-200, @gray-300, @gray-400, @gray-500, @gray-600, @gray-700, @gray-800, @gray-900;
+@colors-name: gray-25, gray-50, gray-100, gray-200, gray-300, gray-400, gray-500, gray-600, gray-700, gray-800, gray-900;
+
+
+.section {
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+
+.test {
+    width: 720px;
+    margin-right: auto;
+    margin-left: auto;
+
+    h5, h6 {
+        color: @gray-900;
+    }
+
+    p {
+        color: @gray-600;
+    }
+}
+
+.colors {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .descr-container {
+        width: 720px;
+        margin-bottom: 30px;
+    }
+
+    .colors-container {
+        display: flex;
+        margin-bottom: 50px;
+
+        div {
+            height: 150px;
+            width: 150px;
+        }
+
+
+        .generate-color-blocks(@index, @list) when (@index <= length(@list)) {
+            @color-name: extract(@list, @index);
+            @color-var: extract(@colors-name, @index);
+
+            div:nth-child(@{index}) {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background-color: @color-name;
+                color: if(lightness(@color-name) > 50%, #000, #fff);
+
+                &::before {
+                    content: "@{color-name}";
+                    color: inherit;
+                }
+
+                &::after {
+                    content: "@{color-var}";
+                }
+            }
+
+
+            .generate-color-blocks(@index + 1, @list);
+        }
+
+        .generate-color-blocks(1, @colors);
+    }
+
+    .text-container {
+        width: 720px;
+
+        .generate-color-blocks(@index, @list) when (@index <= length(@list)) {
+            @color-name: extract(@list, @index);
+            @color-var: extract(@colors-name, @index);
+
+            p:nth-child(@{index}) {
+                color: @color-name;
+
+                &::before {
+                    content: "@{color-var}";
+                    color: inherit;
+                }
+            }
+
+
+            .generate-color-blocks(@index + 1, @list);
+        }
+
+        .generate-color-blocks(1, @colors);
+    }
+}
