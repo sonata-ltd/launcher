@@ -29,8 +29,6 @@ type ImageBroserProps = {
 const imageProcessor = wrap<ImageWorkerAPI>(new ImageProcessorWorker());
 
 export const ImageBrowser = (props: ImageBroserProps) => {
-    const tauriAvailable = window.__TAURI__;
-
     const [selectedImage, setSelectedImage] = createSignal<
         undefined | { name: string, secondAttribute: string }
     >(undefined);

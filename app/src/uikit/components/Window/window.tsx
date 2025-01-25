@@ -9,6 +9,7 @@ import { ButtonTypes } from "../Button/button";
 import { createOverlayScrollbars, OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 import { OverlayScrollbars } from "overlayscrollbars";
 import { useLogger } from "lib/logger";
+import { Portal } from "solid-js/web";
 
 
 export type ButtonConfig = {
@@ -30,6 +31,7 @@ export const Window: Component<WindowProps> = (props) => {
     const [{ log }] = useLogger();
 
     const [loadInternalContent, setLoadInternalContent] = createSignal(props.visible());
+    const [localVisible, setLocalVisible] = createSignal(props.visible());
 
     // Prevent window animation instantly after component render
     let enableAnims = false;
@@ -42,8 +44,9 @@ export const Window: Component<WindowProps> = (props) => {
             // Animate window opening
             if (props.visible()) {
 
-                window.style.display = "block";
+                (window as HTMLDivElement).style.display = "block";
                 setLoadInternalContent(true);
+                setLocalVisible(true);
 
                 animate(
                     window,
@@ -61,12 +64,19 @@ export const Window: Component<WindowProps> = (props) => {
                     av.elementsPoints.window.close,
                     av.defaultAnimationType
                 ).then(() => {
-                    window.style.display = "none";
+                    (window as HTMLDivElement).style.display = "none";
+                    setLocalVisible(false);
                 })
             }
         } else {
             //logw("")
             console.warn("Not found");
+        }
+    })
+
+    createEffect(() => {
+        if (windowContentWrapper) {
+            (windowContentWrapper as HTMLDivElement).setAttribute("data-window-enabled", props.visible().toString());
         }
     })
 
@@ -77,49 +87,53 @@ export const Window: Component<WindowProps> = (props) => {
 
     return (
         <>
-            <div
-                class={css["window"]}
-                style={`${props.width ? `max-width: ${props.width}px` : ``}`}
-                ref={window}
+            <Portal
+                mount={document.getElementById("window-holder")}
+                ref={windowContentWrapper}
             >
-                <div class={css["header"]}>
-                    <div class={css["name"]}>
-                        <p>{props.name || props.name?.() || "Window"}</p>
-                    </div>
-                    <div class={css["controls-container"]}>
-                        <div class={css["minimize"]}></div>
-                        <div
-                            class={css["close"]}
-                            onClick={() => changeVisibility()}
-                        ></div>
-                    </div>
-                </div>
-                <Show
-                    when={props.children}
-                    fallback={
-                        <div class={css["empty-message"]}>
-                            <p>Empty content...</p>
-                        </div>
-                    }
+                <div
+                    class={css["window"]}
+                    style={`${props.width ? `max-width: ${props.width}px` : ``}`}
+                    ref={window}
                 >
-                    {loadInternalContent() && (() => {
-                        console.log("Window Children Load");
-                        return props.children
-                    })()}
-                </Show>
-                <Show when={props.controlsConfig}>
-                    <div class={css["window-controls"]}>
-                        <For each={props.controlsConfig?.()}>{(button) =>
-                            <Button
-                                type={button.type}
-                                onClick={button.action}
-                            >
-                                {button.label}
-                            </Button>
-                        }</For>
+                    <div class={css["header"]}>
+                        <div class={css["name"]}>
+                            <p>{props.name || props.name?.() || "Window"}</p>
+                        </div>
+                        <div class={css["controls-container"]}>
+                            <div class={css["minimize"]}></div>
+                            <div
+                                class={css["close"]}
+                                onClick={() => changeVisibility()}
+                            ></div>
+                        </div>
                     </div>
-                </Show>
-            </div>
+                    <Show
+                        when={props.children}
+                        fallback={
+                            <div class={css["empty-message"]}>
+                                <p>Empty content...</p>
+                            </div>
+                        }
+                    >
+                        {loadInternalContent() && (() => {
+                            return props.children
+                        })()}
+                    </Show>
+                    <Show when={props.controlsConfig}>
+                        <div class={css["window-controls"]}>
+                            <For each={props.controlsConfig?.()}>{(button) =>
+                                <Button
+                                    type={button.type}
+                                    onClick={button.action}
+                                >
+                                    {button.label}
+                                </Button>
+                            }</For>
+                        </div>
+                    </Show>
+                </div>
+            </Portal>
         </>
     )
 }

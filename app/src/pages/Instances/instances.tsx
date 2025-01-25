@@ -29,38 +29,34 @@ const Page: Component = () => {
 
     return (
         <>
-            <Portal>
-                <ImageBrowser
-                    visible={useImageBrowserModel.imageBrowserVisible}
-                    setVisible={useImageBrowserModel.setImageBrowserVisible}
-                    setImageSrc={useImageBrowserModel.setImageSrc}
-                />
-            </Portal>
-            <Portal>
-                <Window
-                    visible={useCreateWindowModel.isWindowVisible}
-                    setVisible={useCreateWindowModel.setWindowVisible}
-                    controlsConfig={useCreateWindowModel.currentButtons}
+            <ImageBrowser
+                visible={useImageBrowserModel.imageBrowserVisible}
+                setVisible={useImageBrowserModel.setImageBrowserVisible}
+                setImageSrc={useImageBrowserModel.setImageSrc}
+            />
+            <Window
+                visible={useCreateWindowModel.isWindowVisible}
+                setVisible={useCreateWindowModel.setWindowVisible}
+                controlsConfig={useCreateWindowModel.currentButtons}
+            >
+                <ContentStack
+                    index={useCreateWindowModel.windowIndex}
+                    prevIndex={useCreateWindowModel.prevWindowIndex}
                 >
-                    <ContentStack
-                        index={useCreateWindowModel.windowIndex}
-                        prevIndex={useCreateWindowModel.prevWindowIndex}
-                    >
-                        <div>
-                            <FlexBox expand>
-                                <Input
-                                    label="Name"
-                                />
-                                <Input
-                                    label="Tags"
-                                />
-                            </FlexBox>
-                        </div>
-                        <p>section 2</p>
-                        <h1>section 3</h1>
-                    </ContentStack>
-                </Window>
-            </Portal>
+                    <div>
+                        <FlexBox expand>
+                            <Input
+                                label="Name"
+                            />
+                            <Input
+                                label="Tags"
+                            />
+                        </FlexBox>
+                    </div>
+                    <p>section 2</p>
+                    <h1>section 3</h1>
+                </ContentStack>
+            </Window>
             <div class={css.InstancesWrapper}>
                 <div class={css.PageContent}>
                     <Button secondary onClick={() => useCreateWindowModel.enableCreateWindow()}>Create</Button>

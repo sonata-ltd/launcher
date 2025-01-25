@@ -13,6 +13,7 @@ import "./App.css";
 import { LoggerProvider } from 'lib/logger';
 import { KeepAliveWrapper, KeepAliveProvider } from 'lib/keepAlive';
 import { DBDataProvider } from 'lib/dbInterface/provider';
+import { WindowHolder } from 'components/WindowHolder/windowHolder';
 
 
 const App: Component = (props: any) => {
@@ -38,6 +39,7 @@ const App: Component = (props: any) => {
         <>
             <WebSocketProvider>
                 <InstancesStateProvider>
+                    <WindowHolder />
                     <TabsProvider>
                         <Header />
                     </TabsProvider>
