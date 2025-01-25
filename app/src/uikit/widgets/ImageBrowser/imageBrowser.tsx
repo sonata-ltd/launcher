@@ -201,6 +201,7 @@ export const ImageBrowser = (props: ImageBroserProps) => {
                 setVisible={props.setVisible}
                 name={"Image Browser"}
                 width={750}
+                detached
             >
                 <ContentWrapper>
                     <Show
