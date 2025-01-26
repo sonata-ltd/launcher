@@ -98,18 +98,24 @@ export const ImageBrowser = (props: ImageBroserProps) => {
 
                 setLastInsertion("total", files.length);
                 animateUploadingContainer(true);
-                setInsertionImages("images", (prev) => [
-                    ...prev,
-                    ...Array.from({ length: files.length }, () => ({
-                        id: "Awaiting upload",
-                        name: "Uploading...",
-                        preview: undefined,
-                    } as LocalImageElement))
-                ])
+                setInsertionImages("images", (prev) => {
+                    return [
+                        ...prev,
+                        ...Array.from({ length: files.length }, () => ({
+                            id: "Awaiting upload",
+                            name: "Uploading...",
+                            preview: undefined,
+                        } as LocalImageElement))
+                    ]
+                })
 
                 await dbMethods.setImages(files, setLastInsertion);
 
                 setLastInsertion("isRunning", false);
+
+                setInsertionImages("images", (prev) => {
+                    return prev.slice(0, -(files.length - lastInsertion.inserted));
+                })
 
                 setTimeout(() => {
                     animateUploadingContainer(false, () => {

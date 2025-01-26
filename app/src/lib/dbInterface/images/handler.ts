@@ -23,13 +23,13 @@ export type LocalImageElement = LocalImage & {
 export type InsertionOperation = {
     isRunning: boolean,
     inserted: number,
-    total: number
+    total: number,
 }
 
 export type InsertionImagesStore = {
     images: LocalImageElement[],
     inserted: number,
-    lastOperation: InsertionOperation
+    lastOperation: InsertionOperation,
 }
 
 type ImageHandlerProps = {
@@ -69,8 +69,8 @@ export const imageHandler = (props: ImageHandlerProps) => {
         setLastInsertion("isRunning", true);
         setLastInsertion("inserted", 0);
 
-        try {
-            for (const file of files) {
+        for (const file of files) {
+            try {
                 const { id, src } = await imageProcessor.processFile(file);
 
                 // I don't think that we need to store the original file
@@ -111,9 +111,9 @@ export const imageHandler = (props: ImageHandlerProps) => {
                         rej(e);
                     }
                 })
+            } catch (e) {
+                console.error(e);
             }
-        } catch (e) {
-            console.error(e);
         }
     }
 
