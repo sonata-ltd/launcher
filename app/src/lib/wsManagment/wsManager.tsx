@@ -1,97 +1,234 @@
-import { createContext, useContext, JSX } from "solid-js";
-import { createStore, Store } from "solid-js/store";
-import { createSignal, onCleanup } from "solid-js";
-import { wsNames } from "./types";
+import { Accessor, createContext, createEffect, createMemo, createSignal, createUniqueId, onCleanup, ParentProps, useContext } from "solid-js";
+import { wsEndpoints } from "./types";
+import { createStore } from "solid-js/store";
 import { useLogger } from "lib/logger";
-
-
-interface ManagedWebSocket {
-    state: () => WebSocketState;
-    messages: Store<string[]>;
-    sendMessage: (message: string) => void;
-    close: () => void;
-}
+import { createSign, randomUUID } from "crypto";
+import Page from "pages/Instances/instances";
+import { debugComputation, debugOwnerSignals, debugSignals } from "@solid-devtools/logger";
 
 type WebSocketState = "CONNECTING" | "OPEN" | "CLOSED" | "ERROR";
+type MessageHandler = (message: any) => void;
 
-type WebSocketMap = Record<string, ManagedWebSocket>;
+type WebSocketClient = {
+    state: () => WebSocketState,
+    messages: any[],
+    send: (data: any) => void,
+    addListener: (handler: MessageHandler) => void,
+    removeListener: (handler: MessageHandler) => void
+}
 
-const WebSocketContext = createContext<WebSocketMap>();
+type WebSocketManager = {
+    [K in keyof typeof wsEndpoints]: WebSocketClient;
+}
 
 
-function createManagedWebSocket(
-    url: string,
-    options: { reconnect?: boolean; reconnectDelay?: number } = {}
-): ManagedWebSocket {
-    const [{ logw }] = useLogger();
-    const { reconnect = true, reconnectDelay = 5000 } = options;
-    const [state, setState] = createSignal<WebSocketState>("CLOSED");
-    const [messages, setMessages] = createStore<string[]>([]);
-    let socket: WebSocket | undefined;
-    let reconnecting = true;
+const WebSocketContext = createContext<WebSocketManager>();
 
+const createWebSocketClient = (url: string, autoReconnect = true): WebSocketClient => {
+    const [{ log }] = useLogger();
+
+    const [state, setState] = createSignal<WebSocketState>("CONNECTING");
+    let localState: WebSocketState = state();
+
+    const [messages, setMessages] = createStore<any[]>([]);
+    const [queuedMessages, setQueuedMessages] = createSignal<any[]>([]);
+
+    const listeners = new Set<MessageHandler>();
+    const registeredListeners = new Map<string, MessageHandler>();
+
+    let socket: WebSocket | null = null;
+    let reconnectTimer: NodeJS.Timeout;
+
+
+    const addListener = (handler: MessageHandler) => {
+        listeners.add(handler);
+
+        const uuid = createUniqueId();
+        console.log("Attached new listener: ", uuid);
+        registeredListeners.set(uuid, handler);
+
+        console.log(registeredListeners);
+        console.log(listeners);
+    }
+
+    const removeListener = (handler: MessageHandler) => {
+        listeners.delete(handler);
+        console.log("listener removed");
+    }
+
+    const changeState = (state: WebSocketState) => {
+        setState(state);
+        localState = state;
+    }
+
+    const sendMsg = (data: any) => {
+        socket?.send(data);
+    }
 
     const connect = () => {
-        setState("CONNECTING");
+        changeState("CONNECTING");
+        if (socket) return;
+
         socket = new WebSocket(url);
 
-        socket.onopen = () => setState("OPEN");
-        socket.onclose = () => {
-            setState("CLOSED");
-            if (reconnect && reconnecting) {
-                setTimeout(connect, reconnectDelay);
-            }
-        };
-        socket.onerror = () => setState("ERROR");
-        socket.onmessage = (event) => setMessages((msgs) => [...msgs, event.data]);
-    };
+        socket.onopen = () => {
+            changeState("OPEN");
+            clearTimeout(reconnectTimer);
 
+            if (queuedMessages().length > 0) {
+
+                for (let i = 0; i < queuedMessages().length; i++) {
+                    const msg = queuedMessages()[i];
+                    sendMsg(msg);
+
+                    setQueuedMessages((prev) => {
+                        const newMessages = [...prev];
+                        newMessages.splice(i, 1);
+                        return newMessages;
+                    })
+                }
+            }
+        }
+
+        socket.onclose = (e) => {
+            changeState("CLOSED");
+            socket = null;
+
+            if (autoReconnect && !e.wasClean) {
+                reconnectTimer = setTimeout(connect, 1000);
+            }
+        }
+
+        socket.onerror = (e) => {
+            changeState("ERROR");
+            socket?.close();
+        }
+
+        socket.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            setMessages((prev) => [...prev, data]);
+            listeners.forEach(handler => handler(data));
+        }
+    }
+
+    const send = (data: any) => {
+        if (localState === "OPEN") {
+            sendMsg(data);
+        } else {
+            setQueuedMessages((prev) => [...prev, data]);
+
+            if (localState === "CLOSED" || localState === "ERROR") {
+                connect();
+            }
+        }
+    }
+
+    const destroy = () => {
+        clearTimeout(reconnectTimer);
+        socket?.close();
+    }
+
+    onCleanup(destroy);
     connect();
 
-
-    const close = () => {
-        reconnecting = false;
-        socket?.close();
-    };
-    onCleanup(close);
-
-
-    const sendMessage = (message: string) => {
-        if (state() === "OPEN") {
-            socket?.send(message);
-        } else {
-            logw("wsManager.connectionFailed", "WebSocket is not open");
-        }
-    };
-
-    return { state, messages, sendMessage, close };
+    return {
+        state,
+        get messages() { return [...messages]; },
+        send,
+        addListener,
+        removeListener
+    }
 }
 
-export function WebSocketProvider(props: { children: JSX.Element }) {
-
-    // Dynamically create websockets connections
-    const [sockets, setSockets] = createStore<WebSocketMap>(
-        Object.fromEntries(
-            Object.entries(wsNames).map(([key, url]) => [
-                key,
-                createManagedWebSocket(url, { reconnect: true, reconnectDelay: 5000 }),
-            ])
-        )
-    );
+export const WebSocketProvider = (props: ParentProps) => {
+    const manager = createMemo(() => {
+        return {} as WebSocketManager;
+    });
 
     return (
-        <WebSocketContext.Provider value={sockets}>
+        <WebSocketContext.Provider value={manager()}>
             {props.children}
         </WebSocketContext.Provider>
-    );
+    )
 }
 
-export function useWebSockets(): WebSocketMap {
+export const useWebSockets = () => {
     const context = useContext(WebSocketContext);
 
     if (!context) {
-        throw new Error("useWebSockets must be used inside WebSocketProvider");
+        throw new Error("useWebSockets must be used within WebSocketProvider");
     }
 
     return context;
+}
+
+export const useWebSocket = <K extends keyof WebSocketManager>(endpoint: K, autoReconnect: boolean = false) => {
+    const manager = useWebSockets();
+
+    if (!manager[endpoint]) {
+        manager[endpoint] = createWebSocketClient(wsEndpoints[endpoint], autoReconnect);
+    }
+
+    const client = manager[endpoint];
+
+    const [messages, setMessages] = createSignal<any[]>(client.messages, { equals: false });
+    let trackedGivenMessages = 0;
+
+    /**
+    * Tracks all unreturned messages
+    * and gives it with memorization
+    * @returns {any[]} - The messages array.
+    */
+    const getMessagesTracked = (): any[] => {
+        const total = messages().length;
+        const returnable = messages().slice(trackedGivenMessages, total);
+        trackedGivenMessages = total;
+        return returnable;
+    }
+
+    const getMessagesOptioned = (options: {
+        last?: boolean,
+        all?: boolean,
+        from?: number,
+        to?: number
+    }): any[] | Error => {
+        const {
+            last,
+            all,
+            from,
+            to
+        } = options;
+
+        if (last) return messages()[messages().length - 1];
+        if (all) return [...messages()];
+
+        if (from !== undefined && to !== undefined) {
+            if (from >= 0 && from <= to) {
+                return messages().slice(from, to);
+            } else {
+                throw new Error("Cannot return array from " + from + " to " + to
+                    + ". From index should be lower than to and bigger or equals to zero.");
+            }
+        } else {
+            console.log("not found");
+        }
+
+        console.log("sending last value");
+        return messages()[messages().length - 1];
+    }
+
+    const handler: MessageHandler = (msg) => {
+        setMessages(prev => [...prev, msg]);
+    }
+
+    onCleanup(() => client.removeListener(handler));
+    client.addListener(handler);
+
+    return {
+        state: client.state,
+        messages,
+        getMessagesTracked,
+        getMessagesOptioned,
+        sendMessage: client.send
+    }
 }

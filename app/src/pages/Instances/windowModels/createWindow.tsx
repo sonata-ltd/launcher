@@ -1,8 +1,19 @@
-import { createSignal } from "solid-js";
-import { ButtonTypes } from "uikit/components/Button/button";
+import { useWebSockets } from "lib/wsManagment";
+import { useWebSocket } from "lib/wsManagment/wsManager";
+import { createEffect, createSignal } from "solid-js";
+import { ButtonTypes } from "uikit/components/Button/button";import { debugComputation } from '@solid-devtools/logger'
+
+
+enum WindowPages {
+    INSTANCE_DETAILS,
+    DOWNLOAD
+}
 
 export const createWindowModel = () => {
-    const [isWindowVisible, setWindowVisible] = createSignal(false);
+    const ws = useWebSocket("runInstance");
+    const { sendMessage, messages } = ws;
+
+    const [isWindowVisible, setWindowVisible] = createSignal(true);
     const [windowIndex, setWindowIndex] = createSignal(0);
     const [prevWindowIndex, setPrevWindowIndex] = createSignal<undefined | number>(undefined);
 
@@ -66,6 +77,24 @@ export const createWindowModel = () => {
         setWindowVisible(false);
     }
 
+    const runInstanceInit = () => {
+        sendMessage(JSON.stringify({ name: "asd", url: "asd" }));
+        // console.log("create send request");
+    }
+
+    const getWSMessages = () => {
+        return messages();
+    }
+
+
+    createEffect(() => {
+        switch (windowIndex()) {
+            case WindowPages.DOWNLOAD:
+            // console.log("run instance init");
+                runInstanceInit();
+        }
+    })
+
 
     return {
         isWindowVisible,
@@ -73,6 +102,7 @@ export const createWindowModel = () => {
         currentButtons,
         windowIndex,
         prevWindowIndex,
-        enableCreateWindow
+        enableCreateWindow,
+        getWSMessages
     }
 }

@@ -1,0 +1,47 @@
+@import "@/uikit/styles/main";
+
+.wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .item {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+
+        .details {
+            width: 100%;
+            display: flex;
+            gap: 7px;
+
+            p {
+                .av-text-md-m;
+            }
+
+            .inprogress-name {
+                .av-text-lg-m;
+            }
+
+            .time {
+                .av-text-md-r;
+                margin-inline-start: auto;
+            }
+        }
+
+        &.inprogress {
+            margin: 10px 0;
+        }
+
+        &.pending {
+            .details > p:first-child {
+                .av-text-md-r;
+            }
+
+            .details > p:nth-child(2) {
+                color: gray;
+            }
+        }
+    }
+}

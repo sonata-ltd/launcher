@@ -14,6 +14,7 @@ import { ImageBrowser } from "uikit/widgets/ImageBrowser/imageBrowser";
 import { Portal } from "solid-js/web";
 import { createWindowModel } from "./windowModels/createWindow";
 import { imageBrowserModel } from "./windowModels/imageBrowserModel";
+import { ProgressDisplay } from "uikit/widgets/ProgressDisplay/progressDisplay";
 
 
 type InstanceInfo = {
@@ -38,11 +39,15 @@ const Page: Component = () => {
                 visible={useCreateWindowModel.isWindowVisible}
                 setVisible={useCreateWindowModel.setWindowVisible}
                 controlsConfig={useCreateWindowModel.currentButtons}
+                name={"Create Instance"}
             >
                 <ContentStack
                     index={useCreateWindowModel.windowIndex}
                     prevIndex={useCreateWindowModel.prevWindowIndex}
                 >
+                    <ProgressDisplay
+                        wsMsgs={useCreateWindowModel.getWSMessages}
+                    />
                     <div>
                         <FlexBox expand>
                             <Input

@@ -26,8 +26,6 @@ type ImageBroserProps = {
     setVisible: Setter<boolean>
 }
 
-const imageProcessor = wrap<ImageWorkerAPI>(new ImageProcessorWorker());
-
 export const ImageBrowser = (props: ImageBroserProps) => {
     const [selectedImage, setSelectedImage] = createSignal<
         undefined | { name: string, secondAttribute: string }

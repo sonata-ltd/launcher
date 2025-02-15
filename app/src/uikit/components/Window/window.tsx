@@ -1,4 +1,4 @@
-import { Accessor, Component, createEffect, createSignal, For, onMount, Setter, Show } from "solid-js";
+import { Accessor, children, Component, createEffect, createSignal, For, onMount, Setter, Show } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { animate, spring } from "motion";
 import { animationValues as av } from '../definitions';
@@ -67,6 +67,7 @@ export const Window: Component<WindowProps> = (props) => {
 
 const WindowBase: Component<WindowProps> = (props) => {
     const [{ log }] = useLogger();
+    const resolvedChildres = children(() => props.children);
 
     const [loadInternalContent, setLoadInternalContent] = createSignal(props.visible());
 
@@ -133,7 +134,7 @@ const WindowBase: Component<WindowProps> = (props) => {
                     </div>
                 </div>
                 <Show
-                    when={props.children}
+                    when={resolvedChildres()}
                     fallback={
                         <div class={css["empty-message"]}>
                             <p>Empty content...</p>
@@ -141,7 +142,7 @@ const WindowBase: Component<WindowProps> = (props) => {
                     }
                 >
                     {loadInternalContent() && (() => {
-                        return props.children
+                        return resolvedChildres();
                     })()}
                 </Show>
                 <Show when={props.controlsConfig}>

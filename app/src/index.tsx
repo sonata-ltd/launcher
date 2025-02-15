@@ -1,16 +1,15 @@
+import '@solid-devtools/debugger/setup';
 /* @refresh reload */
 import { render } from 'solid-js/web';
-import { HashRouter, MemoryRouter, Route, Router } from "@solidjs/router";
 
 import './index.css';
 import { ChildrenReturn, Component, lazy } from 'solid-js';
-import App from '@/App.tsx';
+import App from './App.tsx';
 import { routeNames, routes } from './routes';
 
-import News from "@/pages/NewsList/news";
-import { KeepAlive, KeepAliveProvider } from '@/data/keepAlive';
 import { LocalRouterProvider } from 'lib/localRouter';
 import { LoggerProvider } from 'lib/logger';
+import 'solid-devtools';
 
 
 
@@ -25,7 +24,6 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
 const getRouteByName = (name: string) => {
     return routes.find(route => route.path === name);
 };
-
 
 
 render(() => (

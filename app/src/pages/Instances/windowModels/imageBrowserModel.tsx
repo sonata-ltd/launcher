@@ -1,7 +1,7 @@
 import { createSignal } from "solid-js";
 
 export const imageBrowserModel = () => {
-    const [imageBrowserVisible, setImageBrowserVisible] = createSignal(true);
+    const [imageBrowserVisible, setImageBrowserVisible] = createSignal(false);
     const [imageSrc, setImageSrc] = createSignal<null | string>(null);
 
 

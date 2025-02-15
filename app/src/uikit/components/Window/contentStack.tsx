@@ -12,7 +12,7 @@ type ContentStackProps = {
 }
 
 export const ContentStack: Component<ContentStackProps> = (props) => {
-    let containerRef: Element | undefined = undefined;
+    let containerRef: HTMLElement | undefined = undefined;
     const childRefs: HTMLDivElement[] = [];
 
     let prevClientReactsheight = 0;
@@ -41,9 +41,9 @@ export const ContentStack: Component<ContentStackProps> = (props) => {
 
                 // Animate scroll
                 animate(
-                    containerRef.scrollLeft,
+                    (containerRef as HTMLElement).scrollLeft,
                     eClientReacts.width * props.index(),
-                    { ...av.defaultAnimationType, onUpdate: v => containerRef.scrollLeft = v}
+                    { ...av.defaultAnimationType, onUpdate: v => (containerRef as HTMLElement).scrollLeft = v}
                 )
 
                 // Use the height of initial (or first) element for animation;
@@ -64,8 +64,7 @@ export const ContentStack: Component<ContentStackProps> = (props) => {
 
             // Disable accesibility to previous element
             if (typeof props.prevIndex() === "number") {
-                const prevE = childRefs[props.prevIndex()];
-                console.log(prevE);
+                const prevE = childRefs[(props.prevIndex() as number)];
                 prevE.inert = true;
             }
         }
