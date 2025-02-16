@@ -19,8 +19,8 @@ const Page: Component = () => {
     createEffect(() => {
         // console.log(getMessagesOptioned({ all: true }));
 
-        console.log(messages());
-        console.log(getMessagesTracked());
+        // console.log(messages());
+        // console.log(getMessagesTracked());
     })
 
     return (

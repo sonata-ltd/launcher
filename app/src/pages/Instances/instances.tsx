@@ -45,9 +45,6 @@ const Page: Component = () => {
                     index={useCreateWindowModel.windowIndex}
                     prevIndex={useCreateWindowModel.prevWindowIndex}
                 >
-                    <ProgressDisplay
-                        wsMsgs={useCreateWindowModel.getWSMessages}
-                    />
                     <div>
                         <FlexBox expand>
                             <Input
@@ -58,6 +55,10 @@ const Page: Component = () => {
                             />
                         </FlexBox>
                     </div>
+                    <ProgressDisplay
+                        wsMsgs={useCreateWindowModel.getWSMessages}
+                        getMessagesTracked={useCreateWindowModel.getMessagesTracked}
+                    />
                     <p>section 2</p>
                     <h1>section 3</h1>
                 </ContentStack>

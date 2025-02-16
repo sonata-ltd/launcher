@@ -34,7 +34,6 @@ const createWebSocketClient = (url: string, autoReconnect = true): WebSocketClie
     const [queuedMessages, setQueuedMessages] = createSignal<any[]>([]);
 
     const listeners = new Set<MessageHandler>();
-    const registeredListeners = new Map<string, MessageHandler>();
 
     let socket: WebSocket | null = null;
     let reconnectTimer: NodeJS.Timeout;
@@ -42,18 +41,10 @@ const createWebSocketClient = (url: string, autoReconnect = true): WebSocketClie
 
     const addListener = (handler: MessageHandler) => {
         listeners.add(handler);
-
-        const uuid = createUniqueId();
-        console.log("Attached new listener: ", uuid);
-        registeredListeners.set(uuid, handler);
-
-        console.log(registeredListeners);
-        console.log(listeners);
     }
 
     const removeListener = (handler: MessageHandler) => {
         listeners.delete(handler);
-        console.log("listener removed");
     }
 
     const changeState = (state: WebSocketState) => {
@@ -177,12 +168,17 @@ export const useWebSocket = <K extends keyof WebSocketManager>(endpoint: K, auto
     /**
     * Tracks all unreturned messages
     * and gives it with memorization
-    * @returns {any[]} - The messages array.
+    * @returns {any[] | null} - The messages array or nothing if all messages are already sent.
     */
-    const getMessagesTracked = (): any[] => {
+    const getMessagesTracked = (): any[] | null => {
         const total = messages().length;
         const returnable = messages().slice(trackedGivenMessages, total);
         trackedGivenMessages = total;
+
+        if (returnable.length === 0) {
+            return null;
+        }
+
         return returnable;
     }
 

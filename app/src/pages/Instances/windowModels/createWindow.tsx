@@ -10,12 +10,13 @@ enum WindowPages {
 }
 
 export const createWindowModel = () => {
-    const ws = useWebSocket("runInstance");
-    const { sendMessage, messages } = ws;
+    const ws = useWebSocket("debugWS");
+    const { sendMessage, messages, getMessagesTracked } = ws;
 
     const [isWindowVisible, setWindowVisible] = createSignal(true);
     const [windowIndex, setWindowIndex] = createSignal(0);
-    const [prevWindowIndex, setPrevWindowIndex] = createSignal<undefined | number>(undefined);
+    // const [prevWindowIndex, setPrevWindowIndex] = createSignal<undefined | number>(undefined);
+    let prevWindowIndex: undefined | number = undefined;
 
 
     const buttonConfig = [
@@ -65,7 +66,7 @@ export const createWindowModel = () => {
     }
 
     const changeWindowIndex = (increment: boolean) => {
-        setPrevWindowIndex(windowIndex());
+        prevWindowIndex = windowIndex();
 
         if (increment)
             setWindowIndex((prev) => prev + 1);
@@ -79,13 +80,12 @@ export const createWindowModel = () => {
 
     const runInstanceInit = () => {
         sendMessage(JSON.stringify({ name: "asd", url: "asd" }));
-        // console.log("create send request");
+        console.log("create send request");
     }
 
     const getWSMessages = () => {
         return messages();
     }
-
 
     createEffect(() => {
         switch (windowIndex()) {
@@ -103,6 +103,7 @@ export const createWindowModel = () => {
         windowIndex,
         prevWindowIndex,
         enableCreateWindow,
-        getWSMessages
+        getWSMessages,
+        getMessagesTracked
     }
 }

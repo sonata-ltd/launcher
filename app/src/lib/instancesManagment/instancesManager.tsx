@@ -1,6 +1,6 @@
 import { useWebSockets } from "lib/wsManagment";
 import { operationEventSchema, operationUpdateSchema } from "lib/wsManagment/bindings";
-import { getMessageType, parseWSMessage, validateMessageType } from "lib/wsManagment/parser";
+import { validateMessageType } from "lib/wsManagment/parser";
 import { useWebSocket } from "lib/wsManagment/wsManager";
 import { Accessor, createContext, createEffect, createSignal, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";

@@ -3,11 +3,12 @@ import { Accessor, Component, createEffect, For, JSX } from "solid-js";
 import { animationValues as av } from "../definitions";
 
 import css from "./window.module.less";
+import { debugComputation } from "@solid-devtools/logger";
 
 
 type ContentStackProps = {
     index: Accessor<number>,
-    prevIndex: Accessor<number | undefined>,
+    prevIndex: number | undefined,
     children: JSX.Element[] | JSX.Element,
 }
 
@@ -24,7 +25,6 @@ export const ContentStack: Component<ContentStackProps> = (props) => {
 
         // Enable accesibility for active element
         e.inert = false;
-
 
         // Get initial element
         const initialE = childRefs[0];
@@ -63,8 +63,8 @@ export const ContentStack: Component<ContentStackProps> = (props) => {
             prevClientReactsheight = eClientReacts.height;
 
             // Disable accesibility to previous element
-            if (typeof props.prevIndex() === "number") {
-                const prevE = childRefs[(props.prevIndex() as number)];
+            if (typeof props.prevIndex === "number") {
+                const prevE = childRefs[(props.prevIndex as number)];
                 prevE.inert = true;
             }
         }
