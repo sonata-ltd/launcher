@@ -1,7 +1,7 @@
 import { useWebSockets } from "lib/wsManagment";
 import { useWebSocket } from "lib/wsManagment/wsManager";
 import { createEffect, createSignal } from "solid-js";
-import { ButtonTypes } from "uikit/components/Button/button";import { debugComputation } from '@solid-devtools/logger'
+import { ButtonTypes } from "uikit/components/Button/button"; import { debugComputation } from '@solid-devtools/logger'
 
 
 enum WindowPages {
@@ -10,8 +10,8 @@ enum WindowPages {
 }
 
 export const createWindowModel = () => {
-    const ws = useWebSocket("debugWS");
-    const { sendMessage, messages, getMessagesTracked } = ws;
+    const ws = useWebSocket("initInstance");
+    const { sendMessage, messages, getMessagesTracked, state } = ws;
 
     const [isWindowVisible, setWindowVisible] = createSignal(true);
     const [windowIndex, setWindowIndex] = createSignal(0);
@@ -79,7 +79,26 @@ export const createWindowModel = () => {
     }
 
     const runInstanceInit = () => {
-        sendMessage(JSON.stringify({ name: "asd", url: "asd" }));
+
+        const info = new Map<string, string>();
+        info.set("${auth_player_name}", "Melicta");
+        info.set("${version_name}", "1.21.4");
+        info.set("${version_type}", "release");
+        info.set("${user_type}", "legacy");
+        info.set("${auth_uuid}", "99b3e9029022309dae725bb19e275ecb");
+        info.set("${auth_access_token}", "[asdasd]");
+
+        let infoObject: Record<string, string> = {};
+        info.forEach((value, key) => {
+            infoObject[key] = value;
+        });
+
+        sendMessage(JSON.stringify({
+            name: "asd",
+            url: "https://piston-meta.mojang.com/v1/packages/825af4c11bcd3a05a19eb3b79f5f1684d0556f61/1.21.4.json",
+            request_id: "asd",
+            info: infoObject
+        }));
         console.log("create send request");
     }
 
@@ -87,10 +106,14 @@ export const createWindowModel = () => {
         return messages();
     }
 
+    const getWSState = () => {
+        return state();
+    }
+
     createEffect(() => {
         switch (windowIndex()) {
             case WindowPages.DOWNLOAD:
-            // console.log("run instance init");
+                // console.log("run instance init");
                 runInstanceInit();
         }
     })
@@ -104,6 +127,7 @@ export const createWindowModel = () => {
         prevWindowIndex,
         enableCreateWindow,
         getWSMessages,
-        getMessagesTracked
+        getMessagesTracked,
+        getWSState
     }
 }

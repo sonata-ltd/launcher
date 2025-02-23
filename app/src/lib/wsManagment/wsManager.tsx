@@ -6,7 +6,7 @@ import { createSign, randomUUID } from "crypto";
 import Page from "pages/Instances/instances";
 import { debugComputation, debugOwnerSignals, debugSignals } from "@solid-devtools/logger";
 
-type WebSocketState = "CONNECTING" | "OPEN" | "CLOSED" | "ERROR";
+export type WebSocketState = "CONNECTING" | "OPEN" | "CLOSED" | "ERROR";
 type MessageHandler = (message: any) => void;
 
 type WebSocketClient = {

@@ -20,6 +20,12 @@ export const animationValues = {
         },
         contentLoadingIndicator: {
             animationType: { type: spring, bounce: 0.3, duration: 0.7 },
+        },
+        progressDisplayDoneIcon: {
+            animationType: { type: spring, bounce: 0.3, duration: 0.7 },
+        },
+        progressStages: {
+            animationType: { type: spring, bounce: 0, duration: 0.7 },
         }
     }
 }

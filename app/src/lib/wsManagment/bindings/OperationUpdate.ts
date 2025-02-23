@@ -12,7 +12,7 @@ export const operationUpdateSchema = z.union([
     details: z.object({
       stage: operationStageSchema,
       status: processStatusSchema,
-      target: processTargetSchema,
+      target: processTargetSchema.nullish(),
     }),
   }),
   z.object({
@@ -20,7 +20,7 @@ export const operationUpdateSchema = z.union([
     details: z.object({
       stage: operationStageSchema,
       status: processStatusSchema,
-      target: processTargetSchema,
+      target: processTargetSchema.nullish(),
       current: z.number(),
       total: z.number(),
     }),

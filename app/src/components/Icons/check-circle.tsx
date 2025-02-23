@@ -1,11 +1,15 @@
+import { Ref } from "solid-js"
+
 type DoneIconProps = {
     class?: string,
+    ref?: SVGSVGElement,
 }
 
 export const DoneIcon = (props: DoneIconProps) => {
     return (
         <svg
             class={props.class}
+            ref={props.ref}
             width="24"
             height="24"
             viewBox="0 0 24 24"

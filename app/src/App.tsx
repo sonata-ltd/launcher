@@ -14,6 +14,7 @@ import { LoggerProvider } from 'lib/logger';
 import { KeepAliveWrapper, KeepAliveProvider } from 'lib/keepAlive';
 import { DBDataProvider } from 'lib/dbInterface/provider';
 import { WindowHolder } from 'components/WindowHolder/windowHolder';
+import { LocalizationProvider } from 'lib/localization/provider';
 
 
 const App: Component = (props: any) => {
@@ -37,17 +38,19 @@ const App: Component = (props: any) => {
 
     return (
         <>
-            <WebSocketProvider>
-                <InstancesStateProvider>
-                    <WindowHolder />
-                    <TabsProvider>
-                        <Header />
-                    </TabsProvider>
-                    <DBDataProvider>
-                        <RenderRoute keepAlive="cacheAll" />
-                    </DBDataProvider>
-                </InstancesStateProvider>
-            </WebSocketProvider>
+            <LocalizationProvider>
+                <WebSocketProvider>
+                    <InstancesStateProvider>
+                        <WindowHolder />
+                        <TabsProvider>
+                            <Header />
+                        </TabsProvider>
+                        <DBDataProvider>
+                            <RenderRoute keepAlive="cacheAll" />
+                        </DBDataProvider>
+                    </InstancesStateProvider>
+                </WebSocketProvider>
+            </LocalizationProvider>
         </>
     );
 };

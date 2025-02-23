@@ -58,6 +58,7 @@ const Page: Component = () => {
                     <ProgressDisplay
                         wsMsgs={useCreateWindowModel.getWSMessages}
                         getMessagesTracked={useCreateWindowModel.getMessagesTracked}
+                        getWSState={useCreateWindowModel.getWSState}
                     />
                     <p>section 2</p>
                     <h1>section 3</h1>
