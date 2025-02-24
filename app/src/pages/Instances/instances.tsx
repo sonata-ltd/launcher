@@ -1,20 +1,17 @@
-import { Component, createEffect, createSignal, For, lazy } from "solid-js";
+import { Component, createSignal, For } from "solid-js";
 import Card from "uikit/components/Card";
 
 import css from "./instances.module.less";
-import { useWebSockets } from "lib/wsManagment";
-import { createStore } from "solid-js/store";
-import { InstancesStateProvider, useInstancesState } from "lib/instancesManagment";
+import { useInstancesState } from "lib/instancesManagment";
 import Button from "uikit/components/Button";
 import { FlexBox, VerticalStack, Window } from "uikit/components/Window";
-import { ButtonConfig, ContentStack, WindowControls } from "uikit/components/Window";
-import { ButtonTypes } from "uikit/components/Button/button";
+import { ContentStack } from "uikit/components/Window";
 import { Input } from "uikit/components/Input";
 import { ImageBrowser } from "uikit/widgets/ImageBrowser/imageBrowser";
-import { Portal } from "solid-js/web";
 import { createWindowModel } from "./windowModels/createWindow";
 import { imageBrowserModel } from "./windowModels/imageBrowserModel";
 import { ProgressDisplay } from "uikit/widgets/ProgressDisplay/progressDisplay";
+import { Listbox } from "uikit/components/Listbox/listbox";
 
 
 type InstanceInfo = {
@@ -28,6 +25,9 @@ const Page: Component = () => {
     const useCreateWindowModel = createWindowModel();
     const useImageBrowserModel = imageBrowserModel();
 
+    const [selectedVersion, setSelectedVersion] = createSignal<string>("");
+    const [selectedName, setSelectedName] = createSignal("Alice");
+      const names = ["Alice", "Bob", "Charlie", "David"];
     return (
         <>
             <ImageBrowser
@@ -46,14 +46,25 @@ const Page: Component = () => {
                     prevIndex={useCreateWindowModel.prevWindowIndex}
                 >
                     <div>
-                        <FlexBox expand>
-                            <Input
-                                label="Name"
-                            />
-                            <Input
-                                label="Tags"
-                            />
-                        </FlexBox>
+                        <VerticalStack>
+                            <FlexBox expand>
+                                <Input
+                                    label="Name"
+                                />
+                                <Input
+                                    label="Tags"
+                                />
+                            </FlexBox>
+                            <FlexBox expand>
+                                <Listbox value={selectedName()} onChange={setSelectedName}>
+                                      {names.map(name => (
+                                        <Listbox.Item key={name} value={name}>
+                                          {name}
+                                        </Listbox.Item>
+                                      ))}
+                                    </Listbox>
+                            </FlexBox>
+                        </VerticalStack>
                     </div>
                     <ProgressDisplay
                         wsMsgs={useCreateWindowModel.getWSMessages}

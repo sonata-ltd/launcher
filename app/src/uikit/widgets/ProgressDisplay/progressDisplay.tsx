@@ -1,19 +1,15 @@
-import { DoneIcon } from "components/Icons/check-circle";
-import css from "./progressDisplay.module.less";
-import { ProgressBar } from "uikit/components/Progress";
 import clsx from "clsx";
-import { Accessor, createEffect, createMemo, createSignal, createUniqueId, For, Match, mergeProps, onMount, Show, Switch } from "solid-js";
-import { useWebSockets } from "lib/wsManagment";
+import { DoneIcon } from "components/Icons/check-circle";
+import { useMessages } from "lib/localization/useMessages";
 import { validateMessageType } from "lib/wsManagment";
-import { useWebSocket, WebSocketState } from "lib/wsManagment/wsManager";
-import { OK, z } from "zod";
-import { wsMessageSchema } from "lib/wsManagment/bindings/WsMessage";
-import { operationEventSchema, operationFinishSchema, operationStartSchema, operationUpdateSchema, processStatusSchema, stageStatusSchema } from "lib/wsManagment/bindings";
-import { createMutable, createStore } from "solid-js/store";
-import { debugComputation } from "@solid-devtools/logger";
+import { operationEventSchema, operationFinishSchema, operationStageSchema, operationStartSchema, operationUpdateSchema, processStatusSchema } from "lib/wsManagment/bindings";
+import { WebSocketState } from "lib/wsManagment/wsManager";
 import { animate } from "motion";
+import { Accessor, createEffect, createMemo, createSignal, createUniqueId, For, Match, Switch } from "solid-js";
+import { createMutable } from "solid-js/store";
 import { animationValues as av } from "uikit/components/definitions";
-import { useLocalization } from "lib/localization/provider";
+import { z } from "zod";
+import css from "./progressDisplay.module.less";
 
 
 type ProgressDisplayProps = {
@@ -23,8 +19,8 @@ type ProgressDisplayProps = {
 }
 
 type StageObject = {
-    name: string,
-    status: z.infer<typeof processStatusSchema> | undefined,
+    name: z.infer<typeof operationStageSchema>,
+    status: z.infer<typeof processStatusSchema> | undefined | "error",
     progressType: z.infer<typeof operationUpdateSchema>["type"] | undefined,
     current: number,
     total: number,
@@ -36,8 +32,6 @@ type StagesStore = {
 }
 
 export const ProgressDisplay = (props: ProgressDisplayProps) => {
-    const lang = useLocalization;
-
     const requestId = createUniqueId();
     const stages = createMutable<StagesStore>({
         list: [],
@@ -139,7 +133,13 @@ export const ProgressDisplay = (props: ProgressDisplayProps) => {
 
         if (props.getWSState() === "CLOSED" ||
             props.getWSState() === "ERROR") {
-            setError(true);
+            stages.list.forEach((e) => {
+                if (e.status === "in_progress" ||
+                    e.status === "started" ||
+                    e.status === undefined) {
+                    e.status = "error";
+                }
+            })
         } else if (props.getWSState() === "OPEN") {
             setError(false);
         }
@@ -180,12 +180,17 @@ const ProgressItem = (props: ProgressItemProps) => {
     let clearTimer: () => void;
 
     let isProgressShown: boolean = false;
+    let isNamesSwitched: boolean = false;
 
     let itemRef: HTMLDivElement | undefined;
     let stageNameRef: HTMLParagraphElement | undefined;
+    let stageSecondNameRef: HTMLParagraphElement | undefined;
     let doneIconRef: SVGSVGElement | undefined;
     let progressContainerRef: HTMLDivElement | undefined;
     let progressBarRef: HTMLProgressElement | undefined;
+    let pendingMessageRef: HTMLParagraphElement | undefined;
+    let runningMessageRef: HTMLParagraphElement | undefined;
+    let errorMessageRef: HTMLParagraphElement | undefined;
 
     const showProgress = () => {
         if (!progressContainerRef
@@ -221,6 +226,8 @@ const ProgressItem = (props: ProgressItemProps) => {
         )
 
         isProgressShown = true;
+
+        switchNames(false);
     }
 
     const hideProgress = () => {
@@ -255,6 +262,10 @@ const ProgressItem = (props: ProgressItemProps) => {
             { opacity: [1, 0] },
             av.defaultAnimationType
         )
+
+        isProgressShown = false;
+
+        if (isNamesSwitched) switchNames(true);
     }
 
     createEffect(() => {
@@ -265,13 +276,13 @@ const ProgressItem = (props: ProgressItemProps) => {
 
             animate(
                 doneIconRef,
-                { width: [0, "max-content"] },
+                { width: [0, "20px"] },
                 av.elementsPoints.progressDisplayDoneIcon.animationType
             )
             setTimeout(() => {
                 animate(
                     doneIconRef,
-                    { opacity: [0, 1], scale: [2, 1] },
+                    { opacity: [0, 1], scale: [2, 1], marginInlineEnd: [0, "7px"] },
                     av.elementsPoints.progressDisplayDoneIcon.animationType
                 )
             }, av.elementsPoints.progressDisplayDoneIcon.animationType.duration / 3.5 * 1000);
@@ -310,8 +321,53 @@ const ProgressItem = (props: ProgressItemProps) => {
         }
     })
 
+    const { get } = useMessages();
+
+    const switchNames = (showPrimary: boolean) => {
+        if (!stageNameRef ||
+            !stageSecondNameRef) return;
+
+        if (showPrimary === false) {
+            animate(
+                stageNameRef,
+                { opacity: [1, 0] },
+                av.elementsPoints.progressNames.animationType
+            )
+
+            animate(
+                stageSecondNameRef,
+                { opacity: [0, 1] },
+                av.elementsPoints.progressNames.animationType
+            )
+
+            isNamesSwitched = true;
+        } else {
+            animate(
+                stageNameRef,
+                { opacity: [0, 1] },
+                av.elementsPoints.progressNames.animationType
+            )
+
+            animate(
+                stageSecondNameRef,
+                { opacity: [1, 0] },
+                av.elementsPoints.progressNames.animationType
+            )
+
+            isNamesSwitched = false;
+        }
+    }
+
+    let errorMessage: () => undefined | string = () => undefined;
+
     createEffect(() => {
-        if (props.isError()) {
+        if (elapsed() <= 0) {
+            errorMessage = () => "Error";
+        } else {
+            errorMessage = () => `Error after ${elapsed().toFixed(1)}s`;
+        }
+
+        if (stage().status === "error") {
             if (isProgressShown) {
                 hideProgress();
             }
@@ -336,12 +392,25 @@ const ProgressItem = (props: ProgressItemProps) => {
                     ref={doneIconRef}
                     class={clsx(css["icon"])}
                 />
-                <p
-                    ref={stageNameRef}
-                    class={css["name"]}
-                >
-                    {stage().name}
-                </p>
+                <div class={css["name-container"]}>
+                    <p
+                        ref={stageNameRef}
+                        class={css["name"]}
+                    >
+                        {get(stage().name)}
+                    </p>
+                    <p
+                        ref={stageSecondNameRef}
+                        class={css["second-name"]}
+                    >
+                        {get(`in_progress__${stage().name}`)}
+                    </p>
+                </div>
+                {/* <div class={css["time-container"]}>
+                    <p ref={pendingMessageRef} class={css["pending"]}>Pending</p>
+                    <p ref={runningMessageRef} class={css["running"]}>{elapsed().toFixed(1)}s</p>
+                    <p ref={errorMessageRef} class={css["error"]}>{errorMessage}</p>
+                </div> */}
                 <p
                     class={css["time"]}
                 >
@@ -349,7 +418,7 @@ const ProgressItem = (props: ProgressItemProps) => {
                         <Match when={stage().status === undefined}>Pending</Match>
                         <Match when={stage().status === "started"}>{elapsed().toFixed(1)}s</Match>
                         <Match when={stage().status === "in_progress"}>{elapsed().toFixed(1)}s</Match>
-                        <Match when={props.isError()}>Error</Match>
+                        <Match when={stage().status === "error"}>{errorMessage()}</Match>
                     </Switch>
                 </p>
             </div>

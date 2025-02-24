@@ -26,6 +26,9 @@ export const animationValues = {
         },
         progressStages: {
             animationType: { type: spring, bounce: 0, duration: 0.7 },
+        },
+        progressNames: {
+            animationType: { type: spring, bounce: 0, duration: 0.35 },
         }
     }
 }

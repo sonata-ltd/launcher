@@ -1,0 +1,46 @@
+@import "@/uikit/styles/main.less";
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 5px;
+
+    border-radius: @listbox-br;
+    outline: @listbox-outline;
+
+    .name {
+        width: 100%;
+        margin: 5px 0;
+        color: @listbox-name;
+
+        text-align: center;
+
+        .av-text-sm-m;
+    }
+
+    .selector-area {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        padding: 0 5px;
+
+        overflow-y: scroll;
+
+        .item {
+            height: 25px;
+            margin: 0;
+            padding: 0;
+            border-radius: @listbox-item-br;
+            border: none;
+            background: transparent;
+            flex-shrink: 0;
+
+            .av-text-md-r;
+
+            &.selected {
+                background: @listbox-item-bg_selected;
+            }
+        }
+    }
+}

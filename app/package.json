@@ -6,9 +6,10 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "vite build",
+    "build": "paraglide-js compile --project ./project.inlang --outdir ./src/lib/localization/paraglide && vite build",
     "serve": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "postinstall": "paraglide-js compile --project ./project.inlang --outdir ./src/lib/localization/paraglide"
   },
   "license": "MIT",
   "devDependencies": {
@@ -27,7 +28,8 @@
     "vite-plugin-comlink": "^5.1.0",
     "vite-plugin-solid": "^2.11.0",
     "vite-tsconfig-paths": "^5.1.2",
-    "vitest": "^3.0.4"
+    "vitest": "^3.0.4",
+    "@inlang/paraglide-js": "1.11.8"
   },
   "dependencies": {
     "@solidjs/router": "^0.15.1",

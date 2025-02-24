@@ -7,6 +7,8 @@ import devtools from 'solid-devtools/vite';
 import { comlink } from 'vite-plugin-comlink';
 import babelMacros from "vite-plugin-babel-macros";
 
+import { paraglideVitePlugin } from "@inlang/paraglide-js";
+
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 import path from 'node:path'

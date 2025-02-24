@@ -14,7 +14,6 @@ import { LoggerProvider } from 'lib/logger';
 import { KeepAliveWrapper, KeepAliveProvider } from 'lib/keepAlive';
 import { DBDataProvider } from 'lib/dbInterface/provider';
 import { WindowHolder } from 'components/WindowHolder/windowHolder';
-import { LocalizationProvider } from 'lib/localization/provider';
 
 
 const App: Component = (props: any) => {
@@ -38,7 +37,6 @@ const App: Component = (props: any) => {
 
     return (
         <>
-            <LocalizationProvider>
                 <WebSocketProvider>
                     <InstancesStateProvider>
                         <WindowHolder />
@@ -50,7 +48,6 @@ const App: Component = (props: any) => {
                         </DBDataProvider>
                     </InstancesStateProvider>
                 </WebSocketProvider>
-            </LocalizationProvider>
         </>
     );
 };
