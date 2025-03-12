@@ -8,6 +8,7 @@ interface IInput {
     hint?: string,
     width?: number,
     error?: boolean,
+    onInput?: (e: InputEvent) => void
 }
 
 export const Input = (props: IInput) => {
@@ -21,19 +22,20 @@ export const Input = (props: IInput) => {
                     type="text"
                     placeholder={props.placeholder}
                     class={css["input"]}
+                    onInput={props.onInput}
                     classList={{
                         [css["error"]]: props.error
                     }}
                 />
                 {props.hint
                     && <p
-                            class={css["hint"]}
-                            classList={{
-                                [css["error"]]: props.error
-                            }}
-                        >
-                            {props.hint}
-                        </p>
+                        class={css["hint"]}
+                        classList={{
+                            [css["error"]]: props.error
+                        }}
+                    >
+                        {props.hint}
+                    </p>
                 }
             </div>
         </>

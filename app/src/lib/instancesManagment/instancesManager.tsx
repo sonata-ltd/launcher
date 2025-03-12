@@ -1,31 +1,30 @@
-import { useWebSockets } from "lib/wsManagment";
+import { debugComputation } from "@solid-devtools/logger";
+import { ManifestDBID } from "lib/dbInterface/manifests/handler";
+import { VersionManifestSchema, VersionSchema } from "lib/dbInterface/manifests/types";
+import { useDBData } from "lib/dbInterface/provider";
+import { validateMessageType } from "lib/httpCoreApi";
 import { operationEventSchema, operationUpdateSchema } from "lib/wsManagment/bindings";
-import { validateMessageType } from "lib/wsManagment/parser";
+import { wsMessageSchema } from "lib/wsManagment/bindings/WsMessage";
 import { useWebSocket } from "lib/wsManagment/wsManager";
 import { Accessor, createContext, createEffect, createSignal, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
-import { createStore } from "solid-js/store";
 import { z } from "zod";
 
 
-enum InstanceStatuses {
-    RUNNING,
-    OFF
-}
 
-type InstanceStatus = {
-    instanceId: string,
-    status: InstanceStatus
-}
-
-type InstanceInfo = {
-    loader: string,
-    name: string,
-    version: string
+export type InstanceInfo = {
+    loader: string | undefined,
+    name: string | undefined,
+    version: string | undefined
 }
 
 type Store = [
-    Accessor<InstanceInfo[]>
+    {
+        instances: Accessor<InstanceInfo[]>,
+        runInstance: (versionId: string, instanceName: string) => void,
+        getVersionData: (versionId: string) => z.infer<typeof VersionSchema> | undefined,
+        getManifestVersionsMap: () => Map<string, z.infer<typeof VersionSchema>>
+    }
 ]
 
 const InstancesStateContext = createContext<Store>();
@@ -34,10 +33,69 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
     // const sockets = useWebSockets();
     // const { state, messages, sendMessage } = sockets.listInstances;
 
-    const ws = useWebSocket("listInstances");
-    const { sendMessage, messages } = ws;
+    const [dbMethods] = useDBData();
+    let manifestVersionsMap = new Map<string, z.infer<typeof VersionSchema>>();
+
+    createEffect(async () => {
+        dbMethods.getManifest(ManifestDBID.globalVersionManifest).then((data) => {
+            const parseResult = validateMessageType(VersionManifestSchema, data);
+
+            if (parseResult) {
+                console.log("ok");
+                console.log("asdsad");
+                for (const version of parseResult.versions) {
+                    manifestVersionsMap.set(version.id, version);
+                }
+            } else {
+                console.warn(parseResult);
+            }
+        })
+        // console.log(data());
+
+    })
+
+    const wsListInstances = useWebSocket("listInstances", true);
+    const wsRunInstance = useWebSocket("runInstance");
 
     const [instances, setInstances] = createSignal<InstanceInfo[]>([]);
+
+    const getManifestVersionsMap = () => {
+        return manifestVersionsMap;
+    }
+
+    const getVersionData = (versionId: string): z.infer<typeof VersionSchema> | undefined => {
+        return manifestVersionsMap.get(versionId);
+    }
+
+    const runInstance = (versionId: string, instanceName: string) => {
+        const version = getVersionData(versionId);
+        if (!version) {
+            console.error(`Version with id ${versionId} not found`);
+            return;
+        }
+
+        const info = new Map<string, string>();
+        info.set("${auth_player_name}", "Melicta");
+        info.set("${version_name}", version.id);
+        info.set("${version_type}", version.type);
+        info.set("${user_type}", "legacy");
+        info.set("${auth_uuid}", "99b3e9029022309dae725bb19e275ecb");
+        info.set("${auth_access_token}", "[asdasd]");
+
+        let infoObject: Record<string, string> = {};
+        info.forEach((value, key) => {
+            infoObject[key] = value;
+        });
+
+        const sendObject = JSON.stringify({
+            name: instanceName,
+            url: version.url,
+            request_id: "asd",
+            info: infoObject
+        });
+
+        wsRunInstance.sendMessage(sendObject);
+    }
 
     const addInstance = (info: InstanceInfo) => {
         setInstances((prev) => [...prev, info]);
@@ -48,14 +106,16 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
     }
 
     createEffect(() => {
-        sendMessage("asdasd");
+        wsListInstances.sendMessage("");
     }, []);
 
     createEffect(() => {
+        const messages = wsListInstances.messages;
+
         if (messages().length > 0) {
             const rawMsg = messages()[messages().length - 1];
 
-            const msg = validateMessageType(rawMsg);
+            const msg = validateMessageType(wsMessageSchema, rawMsg);
             if (!msg) return;
 
             switch (msg.type) {
@@ -108,7 +168,12 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
     }
 
     const store: Store = [
-        instances
+        {
+            instances,
+            runInstance,
+            getVersionData,
+            getManifestVersionsMap
+        }
     ]
 
     return (

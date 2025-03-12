@@ -5,7 +5,7 @@ import { validateMessageType } from "lib/wsManagment";
 import { operationEventSchema, operationFinishSchema, operationStageSchema, operationStartSchema, operationUpdateSchema, processStatusSchema } from "lib/wsManagment/bindings";
 import { WebSocketState } from "lib/wsManagment/wsManager";
 import { animate } from "motion";
-import { Accessor, createEffect, createMemo, createSignal, createUniqueId, For, Match, Switch } from "solid-js";
+import { Accessor, createEffect, createMemo, createSignal, createUniqueId, For, Match, onCleanup, Switch } from "solid-js";
 import { createMutable } from "solid-js/store";
 import { animationValues as av } from "uikit/components/definitions";
 import { z } from "zod";
@@ -119,7 +119,7 @@ export const ProgressDisplay = (props: ProgressDisplayProps) => {
                     if (child instanceof HTMLElement) {
                         animate(
                             child,
-                            { marginTop: ["100px", 0] },
+                            { marginTop: ["100px", 0], opacity: [0, 1] },
                             av.elementsPoints.progressStages.animationType
                         )
                     }
@@ -177,7 +177,19 @@ const ProgressItem = (props: ProgressItemProps) => {
     const stage = createMemo(() => props.stage);
 
     const [elapsed, setElapsed] = createSignal(0);
-    let clearTimer: () => void;
+    let startTime = Date.now();
+    let animationFrameId: number;
+
+    const updateElapsed = () => {
+        const now = Date.now();
+        setElapsed((now - startTime) / 1000);
+        animationFrameId = requestAnimationFrame(updateElapsed);
+    };
+
+    onCleanup(() => {
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    });
+
 
     let isProgressShown: boolean = false;
     let isNamesSwitched: boolean = false;
@@ -272,7 +284,8 @@ const ProgressItem = (props: ProgressItemProps) => {
         if (stage().status === "completed") {
             if (!doneIconRef) return;
 
-            if (clearTimer) clearTimer();
+            // if (clearTimer) clearTimer();
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
             animate(
                 doneIconRef,
@@ -300,17 +313,10 @@ const ProgressItem = (props: ProgressItemProps) => {
             if (isProgressShown) {
                 hideProgress();
             }
+
         } else if (stage().status === "started") {
-            const startTime = Date.now();
-
-            const intervalId = setInterval(() => {
-                const seconds = (Date.now() - startTime) / 1000;
-                setElapsed(seconds)
-            }, 100);
-
-            clearTimer = () => {
-                clearInterval(intervalId);
-            }
+            startTime = Date.now();
+            updateElapsed();
 
         } else if (stage().status === "in_progress") {
             switch (stage().progressType) {
@@ -372,9 +378,7 @@ const ProgressItem = (props: ProgressItemProps) => {
                 hideProgress();
             }
 
-            if (clearTimer) {
-                clearTimer();
-            }
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
         }
     })
 

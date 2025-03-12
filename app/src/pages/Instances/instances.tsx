@@ -1,33 +1,25 @@
-import { Component, createSignal, For } from "solid-js";
+import { Component, For } from "solid-js";
 import Card from "uikit/components/Card";
 
-import css from "./instances.module.less";
 import { useInstancesState } from "lib/instancesManagment";
 import Button from "uikit/components/Button";
-import { FlexBox, VerticalStack, Window } from "uikit/components/Window";
-import { ContentStack } from "uikit/components/Window";
+import Dropdown from "uikit/components/Dropdown/dropdown";
 import { Input } from "uikit/components/Input";
+import { ContentStack, FlexBox, VerticalStack, Window } from "uikit/components/Window";
 import { ImageBrowser } from "uikit/widgets/ImageBrowser/imageBrowser";
+import { ProgressDisplay } from "uikit/widgets/ProgressDisplay/progressDisplay";
+import css from "./instances.module.less";
 import { createWindowModel } from "./windowModels/createWindow";
 import { imageBrowserModel } from "./windowModels/imageBrowserModel";
-import { ProgressDisplay } from "uikit/widgets/ProgressDisplay/progressDisplay";
-import { Listbox } from "uikit/components/Listbox/listbox";
 
-
-type InstanceInfo = {
-    loader: string,
-    name: string,
-    version: string
-}
 
 const Page: Component = () => {
-    const [instances] = useInstancesState();
+    const [{ instances, runInstance, getManifestVersionsMap }] = useInstancesState();
+
     const useCreateWindowModel = createWindowModel();
     const useImageBrowserModel = imageBrowserModel();
 
-    const [selectedVersion, setSelectedVersion] = createSignal<string>("");
-    const [selectedName, setSelectedName] = createSignal("Alice");
-      const names = ["Alice", "Bob", "Charlie", "David"];
+
     return (
         <>
             <ImageBrowser
@@ -50,20 +42,30 @@ const Page: Component = () => {
                             <FlexBox expand>
                                 <Input
                                     label="Name"
+                                    placeholder={useCreateWindowModel.getNamePlaceholder("Instance Name")}
+                                    onInput={(e) =>
+                                        useCreateWindowModel.setStoreValueFromInput(e, "name")
+                                    }
                                 />
                                 <Input
                                     label="Tags"
+                                    placeholder="Instance Tags"
                                 />
                             </FlexBox>
-                            <FlexBox expand>
-                                <Listbox value={selectedName()} onChange={setSelectedName}>
-                                      {names.map(name => (
-                                        <Listbox.Item key={name} value={name}>
-                                          {name}
-                                        </Listbox.Item>
-                                      ))}
-                                    </Listbox>
-                            </FlexBox>
+                            <Dropdown
+                                value={useCreateWindowModel.selectedVersionStore.version}
+                                onChange={useCreateWindowModel.selectVersionId}
+                                label="Versions"
+                                placeholder="Instance Version"
+                            >
+                                <For each={[...getManifestVersionsMap().values()]}>
+                                    {(version) => (
+                                        <Dropdown.Item value={version.id} searchValue={version.id}>
+                                            {version.id}
+                                        </Dropdown.Item>
+                                    )}
+                                </For>
+                            </Dropdown>
                         </VerticalStack>
                     </div>
                     <ProgressDisplay
@@ -82,7 +84,8 @@ const Page: Component = () => {
                         <For each={instances()}>{(instance, i) =>
                             <Card
                                 name={instance.name}
-                                description="Fabric 1.20.1"
+                                description={`${instance.loader} ${instance.version}`}
+                                runFn={() => runInstance(instance.version, instance.name)}
                             />
                         }
                         </For>

@@ -6,7 +6,8 @@ import Button from "@/uikit/components/Button";
 type CardProps = {
     name?: string,
     description?: string,
-    img?: string
+    img?: string,
+    runFn: () => void,
 }
 
 const Card: Component<CardProps> = (props) => {
@@ -15,7 +16,7 @@ const Card: Component<CardProps> = (props) => {
             <div class={css["card-component"]}>
                 <div class={css["preview"]}>
                     <div class={css["action-container"]}>
-                        <Button class={css["button"]} secondary>Play</Button>
+                        <Button class={css["button"]} onClick={() => props.runFn()} secondary>Play</Button>
                     </div>
                     <div class={css["shade"]}></div>
                     <Show

@@ -24,7 +24,7 @@ type WebSocketManager = {
 
 const WebSocketContext = createContext<WebSocketManager>();
 
-const createWebSocketClient = (url: string, autoReconnect = true): WebSocketClient => {
+const createWebSocketClient = (url: string, autoReconnect = true, reconnectDelay = 1000): WebSocketClient => {
     const [{ log }] = useLogger();
 
     const [state, setState] = createSignal<WebSocketState>("CONNECTING");
@@ -86,13 +86,17 @@ const createWebSocketClient = (url: string, autoReconnect = true): WebSocketClie
             socket = null;
 
             if (autoReconnect && !e.wasClean) {
-                reconnectTimer = setTimeout(connect, 1000);
+                reconnectTimer = setTimeout(connect, reconnectDelay);
             }
         }
 
         socket.onerror = (e) => {
             changeState("ERROR");
             socket?.close();
+
+            if (autoReconnect) {
+                reconnectTimer = setTimeout(connect, reconnectDelay);
+            }
         }
 
         socket.onmessage = (e) => {
@@ -153,11 +157,15 @@ export const useWebSockets = () => {
     return context;
 }
 
-export const useWebSocket = <K extends keyof WebSocketManager>(endpoint: K, autoReconnect: boolean = false) => {
+export const useWebSocket = <K extends keyof WebSocketManager>(
+    endpoint: K,
+    autoReconnect: boolean = false,
+    reconnectDelay: number = 1000
+) => {
     const manager = useWebSockets();
 
     if (!manager[endpoint]) {
-        manager[endpoint] = createWebSocketClient(wsEndpoints[endpoint], autoReconnect);
+        manager[endpoint] = createWebSocketClient(wsEndpoints[endpoint], autoReconnect, reconnectDelay);
     }
 
     const client = manager[endpoint];

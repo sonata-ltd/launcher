@@ -20,15 +20,15 @@ const App: Component = (props: any) => {
 
     // Custom Scrollbar Initialization
     const [initBodyOverlayScrollbars, getBodyOverlayScrollbarsInstance] =
-    createOverlayScrollbars({
-        defer: true,
-        options: {
-            scrollbars: {
-                autoHide: 'scroll',
-                clickScroll: true
+        createOverlayScrollbars({
+            defer: true,
+            options: {
+                scrollbars: {
+                    autoHide: 'scroll',
+                    clickScroll: true
+                },
             },
-        },
-    });
+        });
 
     onMount(() => {
         initBodyOverlayScrollbars(document.body);
@@ -37,17 +37,17 @@ const App: Component = (props: any) => {
 
     return (
         <>
-                <WebSocketProvider>
+            <WebSocketProvider>
+                <DBDataProvider>
                     <InstancesStateProvider>
                         <WindowHolder />
                         <TabsProvider>
                             <Header />
                         </TabsProvider>
-                        <DBDataProvider>
-                            <RenderRoute keepAlive="cacheAll" />
-                        </DBDataProvider>
+                        <RenderRoute keepAlive="cacheAll" />
                     </InstancesStateProvider>
-                </WebSocketProvider>
+                </DBDataProvider>
+            </WebSocketProvider>
         </>
     );
 };

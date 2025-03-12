@@ -2,9 +2,7 @@ import { Accessor, Setter } from "solid-js";
 import { wrap } from "comlink";
 import { ImageWorkerAPI } from "lib/webWorkers/imageProcessor";
 import ImageProcessorWorker from "@/lib/webWorkers/imageProcessor.ts?worker";
-import { preview } from "vite";
 import { SetStoreFunction } from "solid-js/store";
-import { ExtractedIDBDataType } from "../provider";
 
 
 type LocalImage = {
@@ -33,6 +31,7 @@ export type InsertionImagesStore = {
 }
 
 type ImageHandlerProps = {
+    dbReadyPromise: Promise<void>,
     getDBValue: (name: string) => IDBDatabase | undefined,
     extractedLocalImages: Accessor<LocalImageElement[] | null>,
     setExtractedLocalImages: Setter<LocalImageElement[] | null>
@@ -63,6 +62,8 @@ export const imageHandler = (props: ImageHandlerProps) => {
     }
 
     const requestImagesInsertion = async (files: File[], setLastInsertion: SetStoreFunction<InsertionOperation>) => {
+        await props.dbReadyPromise;
+
         const dbInstance = props.getDBValue(dbName);
         if (!dbInstance) return;
 
@@ -119,6 +120,8 @@ export const imageHandler = (props: ImageHandlerProps) => {
 
     const requestImagesExtraction = async (setReactiveImagesBuffer?: Setter<LocalImageElement[]>) => {
         const imagesBuffer: LocalImageElement[] = [];
+
+        await props.dbReadyPromise;
 
         const dbInstance = props.getDBValue(dbName);
         if (!dbInstance) return;

@@ -29,6 +29,14 @@ export const animationValues = {
         },
         progressNames: {
             animationType: { type: spring, bounce: 0, duration: 0.35 },
+        },
+        dropdownChevron: {
+            open: {
+                transform: ["rotate(0deg)", "rotate(180deg)"]
+            },
+            close: {
+                transform: ["rotate(180deg)", "rotate(0deg)"]
+            }
         }
     }
 }

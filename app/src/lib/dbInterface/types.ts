@@ -5,5 +5,6 @@ export type DB = {
 
 export enum DBTypes {
     localImages = "localImages",
-    nativeImages = "nativeImages"
+    nativeImages = "nativeImages",
+    mcData = "mcData"
 }
