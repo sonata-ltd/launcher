@@ -5,7 +5,7 @@ import { useDBData } from "lib/dbInterface/provider";
 import { validateMessageType } from "lib/httpCoreApi";
 import { operationEventSchema, operationUpdateSchema } from "lib/wsManagment/bindings";
 import { wsMessageSchema } from "lib/wsManagment/bindings/WsMessage";
-import { useWebSocket } from "lib/wsManagment/wsManager";
+import { useWebSocket } from "lib/wsManagment/manager";
 import { Accessor, createContext, createEffect, createSignal, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { z } from "zod";

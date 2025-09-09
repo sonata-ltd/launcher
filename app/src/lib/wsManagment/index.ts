@@ -1,2 +1,2 @@
 export { validateMessageType } from "./parser";
-export { WebSocketProvider, useWebSockets } from "./wsManager";
+export { WebSocketProvider, useWebSockets } from "./manager";

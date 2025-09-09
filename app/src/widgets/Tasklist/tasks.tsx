@@ -1,6 +1,6 @@
 import { createEffect, createMemo, createSignal, Show } from "solid-js";
 import css from "./tasklist.module.less";
-import { useWebSocket } from "lib/wsManagment/wsManager";
+import { useWebSocket } from "lib/wsManagment/manager";
 import { Tasklist } from "./tasklist";
 import { createStore } from "solid-js/store";
 import { z } from "zod";

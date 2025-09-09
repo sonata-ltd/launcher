@@ -1,9 +1,9 @@
-import { createEffect, createSignal, For, onMount, Show, useContext, type Component } from 'solid-js';
+import { Accessor, createEffect, createSignal, For, onMount, Setter, Show, useContext, type Component } from 'solid-js';
 import Header from 'widgets/Header/header';
 import { TabsProvider } from 'lib/tabs';
 import { createOverlayScrollbars } from 'overlayscrollbars-solid';
 import 'overlayscrollbars/overlayscrollbars.css';
-import { WebSocketProvider } from 'lib/wsManagment';
+import { useWebSockets, WebSocketProvider } from 'lib/wsManagment';
 import { InstancesStateProvider } from 'lib/instancesManagment';
 import { Route, Router } from '@solidjs/router';
 import { routes } from 'routes';
@@ -15,6 +15,44 @@ import { KeepAliveWrapper, KeepAliveProvider } from 'lib/keepAlive';
 import { DBDataProvider } from 'lib/dbInterface/provider';
 import { WindowHolder } from 'components/WindowHolder/windowHolder';
 import { StartupScreen } from 'lib/startupScreen';
+import { useLocator } from '@solid-devtools/debugger/setup';
+import { ReconnectScreen } from 'widgets/OnScreen/Reconnect/reconnect';
+
+const UIBuilder = () => {
+    return (
+        <>
+            <WindowHolder />
+            <TabsProvider>
+                <Header />
+            </TabsProvider>
+            <RenderRoute keepAlive="cacheAll" />
+        </>
+    );
+}
+
+
+interface AppServiceHandlerProps {
+    setWSAllConnected: Setter<boolean>,
+    reconnectScreenThenFn: Accessor<(() => Promise<void>) | undefined>,
+}
+
+const AppServicesHandler = (props: AppServiceHandlerProps) => {
+    const wsData = useWebSockets();
+
+    createEffect(() => {
+        const run = async () => {
+            if (wsData.allRequiredConnected() === true) {
+                const fn = props.reconnectScreenThenFn();
+                if (fn) await fn();
+            }
+
+            props.setWSAllConnected(wsData.allRequiredConnected());
+        }
+        run();
+    })
+
+    return <></>;
+}
 
 
 const App: Component = (props: any) => {
@@ -36,7 +74,9 @@ const App: Component = (props: any) => {
     });
 
     const [startupScreenPassed, setStartupScreenPassed] = createSignal(true);
+    const [wsAllConnected, setWSAllConnected] = createSignal(false);
 
+    const [reconnectScreenTriggerFn, setReconnectScreenTriggerFn] = createSignal<(() => Promise<void>) | undefined>();
 
     return (
         <>
@@ -49,11 +89,17 @@ const App: Component = (props: any) => {
                 <WebSocketProvider>
                     <DBDataProvider>
                         <InstancesStateProvider>
-                            <WindowHolder />
-                            <TabsProvider>
-                                <Header />
-                            </TabsProvider>
-                            <RenderRoute keepAlive="cacheAll" />
+                            <AppServicesHandler setWSAllConnected={setWSAllConnected} reconnectScreenThenFn={reconnectScreenTriggerFn} />
+                            <Show
+                                when={wsAllConnected()}
+                                fallback={
+                                    <>
+                                        <ReconnectScreen exposeTrigger={(fn) => (setReconnectScreenTriggerFn(() => fn))} />
+                                    </>
+                                }
+                            >
+                                <UIBuilder />
+                            </Show>
                         </InstancesStateProvider>
                     </DBDataProvider>
                 </WebSocketProvider>

@@ -1,5 +1,5 @@
 import { InstanceInfo, useInstancesState } from "lib/instancesManagment";
-import { useWebSocket } from "lib/wsManagment/wsManager";
+import { useWebSocket } from "lib/wsManagment/manager";
 import { createEffect, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 import { GetButtonsConfig } from "./buttonConfig";

@@ -1,0 +1,72 @@
+@import "@/uikit/styles/main";
+
+.container {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    gap: 20px;
+
+    padding: 20px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    .av-no-select;
+}
+
+.header {
+    display: flex;
+    gap: 10px;
+    text-align: center;
+    align-items: center;
+
+    svg {
+        height: 28px;
+        width: 28px;
+
+        path {
+            stroke: @red-600;
+        }
+    }
+
+    p {
+        .av-text-xl-s;
+        color: @red-600;
+        margin: 0;
+    }
+}
+
+.details {
+    display: flex;
+    max-width: 615px;
+    width: 100%;
+    gap: 20px;
+    flex-direction: column;
+}
+
+.descr {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    text-align: center;
+
+    p {
+        .av-text-md-r;
+        color: @text-secondary;
+    }
+}
+
+.add {
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+    align-items: center;
+
+    p {
+        .av-text-md-m;
+        color: @text-secondary;
+    }
+
+    /* .spinner > svg > circle:nth-child(2) {
+        stroke: @text-secondary;
+    } */
+}

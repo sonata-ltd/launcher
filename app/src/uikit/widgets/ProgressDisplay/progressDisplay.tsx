@@ -3,7 +3,7 @@ import { DoneIcon } from "components/Icons/check-circle";
 import { handleWSStateChange } from "lib/hooks/progressEvents/parse";
 import { createProgressState, processMessages, StageObject } from "lib/hooks/progressEvents/useProgressEvents";
 import { useTranslatedMessages } from "lib/localization/useMessages";
-import { WebSocketState } from "lib/wsManagment/wsManager";
+import { WebSocketState } from "lib/wsManagment/manager";
 import { Accessor, createEffect, createMemo, createSignal, For, Match, onCleanup, Show, Switch } from "solid-js";
 import { animateCompletedStage, animateNewStages, hideProgress, Names, showProgress, switchNames } from "./animations";
 import css from "./progressDisplay.module.less";
