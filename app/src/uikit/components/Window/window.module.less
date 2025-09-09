@@ -10,7 +10,7 @@
     width: 100%;
 
     height: fit-content;
-    max-height: 80%;
+    max-height: 80vh;
     min-height: 100px;
 
     position: fixed;
@@ -29,7 +29,7 @@
 
     opacity: 0;
     z-index: 3;
-    /* display: none; */
+    display: none;
 
     .calc-outer-radius(@btn-br, @content-padding);
 
@@ -41,6 +41,7 @@
     .header {
         display: flex;
         height: 50px;
+        min-height: 50px;
         border-bottom: 1.5px @gray-50 solid;
         transform: translateZ(0);
 
@@ -107,6 +108,10 @@
         overflow: hidden;
         align-items: center;
 
+        &.align-top {
+            align-items: flex-start;
+        }
+
         .content {
             height: max-content;
             width: 100%;
@@ -134,6 +139,51 @@
                 display: flex;
                 flex-direction: column;
                 gap: 15px;
+
+                &.expand {
+                    width: 100%;
+
+                    &>* {
+                        width: 100%;
+                    }
+                }
+            }
+        }
+    }
+
+    .horizontal-container {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+
+        .sidebar {
+            width: 200px;      /* зафиксированная ширина для боковой колонки */
+            flex: 0 0 auto;    /* не растягиваем, только своя ширина */
+            height: 100%;      /* занимаем всю высоту родителя */
+            overflow-y: auto;  /* внутренняя прокрутка сайдбара */
+            background: @gray-100; /* чтобы было видно границу */
+          }
+
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+
+            .main-container {
+                flex: 1 1 auto;
+                overflow-y: auto;
+                height: auto; /* можно явно не указывать, т.к. flex:1 */
+                width: 100%;
+            }
+
+            .bottom-container {
+                flex: 0 0 auto;
+                position: sticky;
+                bottom: 0;
+                background: @white;
+                z-index: 2;
             }
         }
     }

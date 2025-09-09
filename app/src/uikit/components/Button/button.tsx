@@ -3,7 +3,7 @@ import styles from './button.module.less';
 import { animate, spring } from 'motion';
 import { animationValues as av } from '../definitions';
 
-enum ButtonSizes {
+export enum ButtonSizes {
     sm,
     md,
     lg
@@ -23,11 +23,13 @@ type ButtonProps = {
     tertiary?: boolean,
     acryl?: boolean,
     disabled?: boolean,
-    size?: "sm",
+    size?: ButtonSizes,
     icon?: boolean,
     children?: any,
     class?: string,
     onClick?: () => void,
+    expand?: boolean,
+    startAlign?: boolean
 }
 
 const Button: Component<ButtonProps> = (props) => {
@@ -63,7 +65,12 @@ const Button: Component<ButtonProps> = (props) => {
 
     return (
         <>
-            <div class={props.class}>
+            <div
+                class={props.class}
+                classList={{
+                    [styles.expand]: props.expand
+                }}
+            >
                 <button
                     ref={button}
                     class={styles["button"]}
@@ -74,7 +81,9 @@ const Button: Component<ButtonProps> = (props) => {
                         [styles.acryl]: getButtonType() === ButtonTypes.acryl,
                         [styles.disabled]: props.disabled,
                         [styles.icon]: props.icon,
-                        [styles.sm]: props.size === "sm" || !props.size,
+                        [styles.sm]: props.size === ButtonSizes.sm || !props.size,
+                        [styles.md]: props.size === ButtonSizes.md,
+                        [styles["start-align"]]: props.startAlign
                     }}
                     onMouseDown={animateMouseDown}
                     onMouseUp={animateMouseUp}

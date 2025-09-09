@@ -5,6 +5,6 @@ export const baseMessageSchema = z.object({
   message_id: z.string(),
   operation_id: z.string().nullish(),
   request_id: z.string().nullish(),
-  timestamp: z.string(),
+  timestamp: z.string().datetime({ message: "invalid datetime string" }),
   correlation_id: z.string().nullish(),
 });

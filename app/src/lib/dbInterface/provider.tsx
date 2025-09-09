@@ -2,7 +2,7 @@ import { Accessor, createContext, createEffect, createSignal, ParentProps, Sette
 import { createStore, SetStoreFunction } from "solid-js/store";
 import { imageHandler, InsertionOperation, LocalImageElement } from "./images/handler";
 import { DBTypes } from "./types";
-import { ManifestDBID, manifestHandler } from "./manifests/handler";
+import { ManifestDataMap, ManifestDBID, manifestHandler } from "./handler";
 
 type TableDefinition = { keyPath: string, autoIncrement: boolean, name: string }
 
@@ -30,15 +30,15 @@ const DBTypeTables: DBTypeTables = {
 
 export type ExtractedIDBDataType = {
     localImages: LocalImageElement[] | null,
-    versionsManifest: { [key in ManifestDBID]?: JSON }
+    versionsManifest: Partial<ManifestDataMap>
 }
 
 type Store = [
     {
         getImages: (setReactiveImagesBuffer?: Setter<LocalImageElement[]>) => Accessor<LocalImageElement[] | null>,
         setImages: (files: File[], setLastInsertion: SetStoreFunction<InsertionOperation>) => Promise<void>,
-        getManifest: (id: ManifestDBID) => Promise<JSON | null>,
-        setManifest: (manifest: JSON, id: ManifestDBID) => Promise<void>
+        getManifest: <K extends ManifestDBID>(id: K) => Promise<ManifestDataMap[K] | null>,
+        setManifest: <K extends ManifestDBID>(manifest: ManifestDataMap[K], id: K) => Promise<void>
     }
 ]
 
@@ -49,7 +49,7 @@ export const DBDataProvider = (props: ParentProps) => {
     const [db, setDB] = createSignal<IDBDatabase[]>([]);
     const [extractedIDBData, setExtractedIDBData] = createStore<ExtractedIDBDataType>({
         localImages: null,
-        versionsManifest: {}
+        versionsManifest: {} as Partial<ManifestDataMap>
     });
 
     const dbReadyPromise = new Promise<void>((resolve) => {
@@ -72,8 +72,6 @@ export const DBDataProvider = (props: ParentProps) => {
     }
 
     const getDBValue = (name: string): IDBDatabase | undefined => {
-        console.log(name);
-        console.log(db());
         return db().find((e) => e.name === name);
     }
 

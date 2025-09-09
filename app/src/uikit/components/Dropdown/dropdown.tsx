@@ -17,13 +17,17 @@ type DropdownContextType<T> = {
 }
 
 type DropdownProps<T> = {
+    width?: number,
     value: T,
     onChange: (value: T) => void,
     label?: string,
     children: JSX.Element | JSX.Element[],
     error?: boolean,
     hint?: string,
-    placeholder?: string
+    placeholder?: string,
+    actionChildren?: JSX.Element | JSX.Element[],
+    expand?: boolean,
+    typeable?: boolean,
 }
 
 const DropdownContext = createContext<DropdownContextType<any>>();
@@ -38,8 +42,13 @@ const Dropdown: ParentComponent<DropdownProps<any>> = (props) => {
     let inputContainerRef: HTMLDivElement | undefined;
     let itemsWrapperRef: HTMLDivElement | undefined;
 
-    console.log(props.value);
 
+    // Handle already selected value
+    createEffect(() => {
+        if (props.value) {
+            setSelectedTextValue(props.value);
+        }
+    })
 
     // Close dropdown on outside click
     createEffect(() => {
@@ -155,35 +164,47 @@ const Dropdown: ParentComponent<DropdownProps<any>> = (props) => {
         <DropdownContext.Provider value={contextValue}>
             <div class={css["wrapper"]}>
                 <div class={cssInput["wrapper"]}>
-                    {props.label && <p class={cssInput["label"]}>Version</p>}
-                    <div class={css["input-container"]} ref={inputContainerRef}>
-                        <input
-                            type="text"
-                            placeholder={selectedTextValue() || props.placeholder || ""}
-                            class={cssInput["input"]}
-                            value={selectedTextValue() || search()}
-                            onInput={(e) => setSearch(e.currentTarget.value)}
-                            onclick={() => setIsOpen(true)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Escape") {
-                                    setIsOpen(false);
-                                    e.preventDefault();
-                                }
-                            }}
-                            classList={{ [cssInput["error"]]: props.error }}
-                        />
-                        <button
-                            class={css["chevron"]}
-                            onClick={() => setIsOpen(!isOpen())}
+                    <div class={cssInput["container"]}>
+                        {props.label && <p class={cssInput["label"]}>{props.label}</p>}
+                        <div
+                            class={css["input-container"]}
+                            style={props.expand ? `width: 100%` : props.width ? `width: ${props.width}px` : ``}
+                            ref={inputContainerRef}
                         >
-                            <ChevronIcon class={css["icon"]} ref={chevron} />
-                        </button>
+                            <input
+                                readOnly={props.typeable ? false : true}
+                                type="text"
+                                placeholder={selectedTextValue() || props.placeholder || ""}
+                                class={cssInput["input"]}
+                                value={selectedTextValue() || search()}
+                                onInput={(e) => setSearch(e.currentTarget.value)}
+                                onClick={() => setIsOpen(true)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Escape") {
+                                        setIsOpen(false);
+                                        e.preventDefault();
+                                    }
+                                }}
+                                classList={{ [cssInput["error"]]: props.error }}
+                            />
+                            <button
+                                class={css["chevron"]}
+                                onClick={() => setIsOpen(!isOpen())}
+                            >
+                                <ChevronIcon class={css["icon"]} ref={chevron} />
+                            </button>
+                        </div>
+                        {props.hint && (
+                            <p class={cssInput["hint"]} classList={{ [cssInput["error"]]: props.error }}>
+                                {props.hint}
+                            </p>
+                        )}
                     </div>
-                    {props.hint && (
-                        <p class={cssInput["hint"]} classList={{ [cssInput["error"]]: props.error }}>
-                            {props.hint}
-                        </p>
-                    )}
+                    <Show
+                        when={props.actionChildren}
+                    >
+                        {props.actionChildren}
+                    </Show>
                 </div>
                 <Show when={isOpen()}>
                     <div class={css["dropdown-area"]} ref={itemsWrapperRef}>

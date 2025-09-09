@@ -1,14 +1,11 @@
 import clsx from "clsx";
 import { DoneIcon } from "components/Icons/check-circle";
-import { useMessages } from "lib/localization/useMessages";
-import { validateMessageType } from "lib/wsManagment";
-import { operationEventSchema, operationFinishSchema, operationStageSchema, operationStartSchema, operationUpdateSchema, processStatusSchema } from "lib/wsManagment/bindings";
+import { handleWSStateChange } from "lib/hooks/progressEvents/parse";
+import { createProgressState, processMessages, StageObject } from "lib/hooks/progressEvents/useProgressEvents";
+import { useTranslatedMessages } from "lib/localization/useMessages";
 import { WebSocketState } from "lib/wsManagment/wsManager";
-import { animate } from "motion";
-import { Accessor, createEffect, createMemo, createSignal, createUniqueId, For, Match, onCleanup, Switch } from "solid-js";
-import { createMutable } from "solid-js/store";
-import { animationValues as av } from "uikit/components/definitions";
-import { z } from "zod";
+import { Accessor, createEffect, createMemo, createSignal, For, Match, onCleanup, Show, Switch } from "solid-js";
+import { animateCompletedStage, animateNewStages, hideProgress, Names, showProgress, switchNames } from "./animations";
 import css from "./progressDisplay.module.less";
 
 
@@ -18,143 +15,32 @@ type ProgressDisplayProps = {
     getWSState: () => WebSocketState
 }
 
-type StageObject = {
-    name: z.infer<typeof operationStageSchema>,
-    status: z.infer<typeof processStatusSchema> | undefined | "error",
-    progressType: z.infer<typeof operationUpdateSchema>["type"] | undefined,
-    current: number,
-    total: number,
-    time: string
-}
-
-type StagesStore = {
-    list: StageObject[]
-}
-
 export const ProgressDisplay = (props: ProgressDisplayProps) => {
-    const requestId = createUniqueId();
-    const stages = createMutable<StagesStore>({
-        list: [],
-    })
+    const progressState = createProgressState();
     const [isError, setError] = createSignal(false);
-    let operationDone: boolean = false;
-
     let wrapperRef: HTMLDivElement | undefined;
 
-    const handleWSMessage = (rawMsg: any) => {
-        if (!rawMsg) return;
-
-        const msg = validateMessageType(rawMsg);
-
-        if (!msg) return;
-
-
-        switch (msg.type) {
-            case "operation":
-                processOperationMessage(msg.payload.data);
-        }
-    }
-
-    const processOperationMessage = (msg: z.infer<typeof operationEventSchema>) => {
-        switch (true) {
-            case "start" in msg:
-                processOperationStartMessage(msg.start);
-                break;
-            case "update" in msg:
-                processOperationUpdateMessage(msg.update);
-                break;
-            case "finish" in msg:
-                processOpeartionFinishMessage(msg.finish);
-                break;
-        }
-    }
-
-    const processOpeartionFinishMessage = (msg: z.infer<typeof operationFinishSchema>) => {
-        operationDone = true;
-    }
-
-    const processOperationUpdateMessage = (msg: z.infer<typeof operationUpdateSchema>) => {
-        const i = stages.list.findIndex(e => e.name === msg.details.stage);
-
-        if (i >= 0) {
-            stages.list[i].status = msg.details.status;
-
-
-            if (msg.type !== "Completed") {
-                switch (msg.type) {
-                    case "Determinable":
-                        stages.list[i].current = msg.details.current;
-                        stages.list[i].progressType = msg.type;
-                        stages.list[i].total = msg.details.total;
-                        break;
-                }
-            }
-        }
-    }
-
-    const processOperationStartMessage = (msg: z.infer<typeof operationStartSchema>) => {
-        if (msg.stages) {
-            stages.list.length = 0;
-
-            msg.stages.forEach((e, i) => {
-                const stageObject: StageObject = {
-                    name: e,
-                    status: undefined,
-                    progressType: undefined,
-                    current: 0,
-                    total: 0,
-                    time: "0"
-                }
-
-                // setStages((prev) => [...prev, stageObject]);
-                stages.list.push(stageObject);
-            })
-
-            if (!wrapperRef) return;
-
-            setTimeout(() => {
-                const childs = wrapperRef.childNodes;
-
-                for (const child of childs) {
-                    if (child instanceof HTMLElement) {
-                        animate(
-                            child,
-                            { marginTop: ["100px", 0], opacity: [0, 1] },
-                            av.elementsPoints.progressStages.animationType
-                        )
-                    }
-                }
-            })
-        }
-    }
-
     createEffect(() => {
-        if (operationDone) return;
+        if (progressState.operationDone) return;
 
-        if (props.getWSState() === "CLOSED" ||
-            props.getWSState() === "ERROR") {
-            stages.list.forEach((e) => {
-                if (e.status === "in_progress" ||
-                    e.status === "started" ||
-                    e.status === undefined) {
-                    e.status = "error";
-                }
-            })
-        } else if (props.getWSState() === "OPEN") {
-            setError(false);
-        }
+        handleWSStateChange(props.getWSState(), progressState);
+        setError(progressState.isError);
     })
 
     createEffect(() => {
-        props.getMessagesTracked()?.forEach((rawMsg) => {
-            handleWSMessage(rawMsg);
-        })
+        processMessages(props.getMessagesTracked(), progressState);
+    })
+
+    createEffect(() => {
+        if (progressState.stages.list.length > 0) {
+            animateNewStages(wrapperRef);
+        }
     })
 
     return (
         <>
             <div ref={wrapperRef} class={css["wrapper"]}>
-                <For each={stages.list}>
+                <For each={progressState.stages.list}>
                     {(stage) =>
                         <ProgressItem
                             stage={stage}
@@ -191,12 +77,16 @@ const ProgressItem = (props: ProgressItemProps) => {
     });
 
 
+    const [showProcessedItemsCount, setShowProcessedItemsCount] = createSignal(false);
+
     let isProgressShown: boolean = false;
     let isNamesSwitched: boolean = false;
+    let currentShownName: Names = Names.First;
 
     let itemRef: HTMLDivElement | undefined;
     let stageNameRef: HTMLParagraphElement | undefined;
     let stageSecondNameRef: HTMLParagraphElement | undefined;
+    let stageThirdNameRef: HTMLParagraphElement | undefined;
     let doneIconRef: SVGSVGElement | undefined;
     let progressContainerRef: HTMLDivElement | undefined;
     let progressBarRef: HTMLProgressElement | undefined;
@@ -204,114 +94,47 @@ const ProgressItem = (props: ProgressItemProps) => {
     let runningMessageRef: HTMLParagraphElement | undefined;
     let errorMessageRef: HTMLParagraphElement | undefined;
 
-    const showProgress = () => {
-        if (!progressContainerRef
-            || !progressBarRef
-            || !itemRef
-            || !stageNameRef) return;
 
-        animate(
-            stageNameRef,
-            {
-                fontSize: ["16px", "18px"],
-                lineHeight: ["24px", "28px"]
-            },
-            av.defaultAnimationType
-        )
+    const handleSwitchNames = (showName: Names) => {
+        return switchNames(showName, stageNameRef, stageSecondNameRef, stageThirdNameRef);
+    };
 
-        animate(
-            [itemRef],
-            { margin: [0, "10px 0"] },
-            av.defaultAnimationType
-        )
+    const handleShowProgress = () => {
+        isProgressShown = showProgress(stageNameRef, itemRef, progressContainerRef, progressBarRef);
+        if (isProgressShown) {
+            isNamesSwitched = true;
+            currentShownName = handleSwitchNames(Names.Second);
+        }
+    };
 
-        animate(
-            [progressContainerRef],
-            { height: [0, "12px"] },
-            av.defaultAnimationType
-        )
+    const handleHideProgress = () => {
+        isProgressShown = hideProgress(stageNameRef, itemRef, progressContainerRef, progressBarRef);
+        if (isProgressShown && isNamesSwitched) {
+            isNamesSwitched = false;
+            currentShownName = handleSwitchNames(Names.First);
+        }
+    };
 
-        animate(
-            [progressBarRef],
-            { opacity: [0, 1] },
-            av.defaultAnimationType
-        )
+    const handleShowProgressDetails = () => {
+        isProgressShown = showProgress(stageNameRef, itemRef, progressContainerRef, progressBarRef);
+        setShowProcessedItemsCount(true);
 
-        isProgressShown = true;
+        if (!isProgressShown && isNamesSwitched) {
+            isNamesSwitched = true;
+            currentShownName = handleSwitchNames(Names.Third);
+        }
+    };
 
-        switchNames(false);
-    }
 
-    const hideProgress = () => {
-        if (!progressContainerRef
-            || !progressBarRef
-            || !itemRef
-            || !stageNameRef) return;
-
-        animate(
-            stageNameRef,
-            {
-                fontSize: ["18px", "16px"],
-                lineHeight: ["28px", "24px"]
-            },
-            av.defaultAnimationType
-        )
-
-        animate(
-            [itemRef],
-            { margin: ["10px 0", 0] },
-            av.defaultAnimationType
-        )
-
-        animate(
-            [progressContainerRef],
-            { height: ["12px", 0] },
-            av.defaultAnimationType
-        )
-
-        animate(
-            [progressBarRef],
-            { opacity: [1, 0] },
-            av.defaultAnimationType
-        )
-
-        isProgressShown = false;
-
-        if (isNamesSwitched) switchNames(true);
-    }
 
     createEffect(() => {
         if (stage().status === "completed") {
-            if (!doneIconRef) return;
-
-            // if (clearTimer) clearTimer();
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
-            animate(
-                doneIconRef,
-                { width: [0, "20px"] },
-                av.elementsPoints.progressDisplayDoneIcon.animationType
-            )
-            setTimeout(() => {
-                animate(
-                    doneIconRef,
-                    { opacity: [0, 1], scale: [2, 1], marginInlineEnd: [0, "7px"] },
-                    av.elementsPoints.progressDisplayDoneIcon.animationType
-                )
-            }, av.elementsPoints.progressDisplayDoneIcon.animationType.duration / 3.5 * 1000);
-
-
-            if (!stageNameRef) return;
-            animate(
-                stageNameRef,
-                {
-                    fontVariationSettings: [`"opsz" 14, "wght" 400"`, `"opsz" 14, "wght" 500`]
-                },
-                av.defaultAnimationType
-            )
+            animateCompletedStage(doneIconRef, stageNameRef);
 
             if (isProgressShown) {
-                hideProgress();
+                handleHideProgress();
             }
 
         } else if (stage().status === "started") {
@@ -321,50 +144,21 @@ const ProgressItem = (props: ProgressItemProps) => {
         } else if (stage().status === "in_progress") {
             switch (stage().progressType) {
                 case "Determinable":
-                    showProgress();
+                    handleShowProgress();
                     break;
             }
         }
     })
 
-    const { get } = useMessages();
+    createEffect(() => {
+        if (stage().status === "error") {
+            if (isProgressShown) {
+                handleHideProgress();
+            }
 
-    const switchNames = (showPrimary: boolean) => {
-        if (!stageNameRef ||
-            !stageSecondNameRef) return;
-
-        if (showPrimary === false) {
-            animate(
-                stageNameRef,
-                { opacity: [1, 0] },
-                av.elementsPoints.progressNames.animationType
-            )
-
-            animate(
-                stageSecondNameRef,
-                { opacity: [0, 1] },
-                av.elementsPoints.progressNames.animationType
-            )
-
-            isNamesSwitched = true;
-        } else {
-            animate(
-                stageNameRef,
-                { opacity: [0, 1] },
-                av.elementsPoints.progressNames.animationType
-            )
-
-            animate(
-                stageSecondNameRef,
-                { opacity: [1, 0] },
-                av.elementsPoints.progressNames.animationType
-            )
-
-            isNamesSwitched = false;
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
         }
-    }
-
-    let errorMessage: () => undefined | string = () => undefined;
+    })
 
     createEffect(() => {
         if (elapsed() <= 0) {
@@ -373,14 +167,14 @@ const ProgressItem = (props: ProgressItemProps) => {
             errorMessage = () => `Error after ${elapsed().toFixed(1)}s`;
         }
 
-        if (stage().status === "error") {
-            if (isProgressShown) {
-                hideProgress();
-            }
-
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        if (elapsed() > 5000) {
+            handleShowProgressDetails();
         }
     })
+
+
+    let errorMessage: () => undefined | string = () => undefined;
+    const { get } = useTranslatedMessages();
 
     return (
         <div
@@ -409,6 +203,16 @@ const ProgressItem = (props: ProgressItemProps) => {
                     >
                         {get(`in_progress__${stage().name}`)}
                     </p>
+                    <Show
+                        when={showProcessedItemsCount}
+                    >
+                        <p
+                            ref={stageThirdNameRef}
+                            class={css["third-name"]}
+                        >
+                            {get(`in_progress__download`)} · {stage().current}/{stage().total}
+                        </p>
+                    </Show>
                 </div>
                 {/* <div class={css["time-container"]}>
                     <p ref={pendingMessageRef} class={css["pending"]}>Pending</p>

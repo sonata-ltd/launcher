@@ -3,7 +3,7 @@ import * as m from './paraglide/messages'
 
 type MessageFunction = (params?: object, options?: { languageTag?: 'en' | 'ru' }) => string
 
-export const useMessages = () => {
+export const useTranslatedMessages = () => {
   const t = createMemo((prev: Record<string, MessageFunction> = m) => prev)
 
   return {

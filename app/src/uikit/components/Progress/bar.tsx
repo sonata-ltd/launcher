@@ -1,10 +1,18 @@
 import css from "./bar.module.less";
 
-export const ProgressBar = () => {
+
+
+interface ProgressBarProps {
+    class?: string
+    ref?: HTMLDivElement
+}
+
+export const ProgressBar = (props: ProgressBarProps) => {
     return (
         <>
             <div
-                class={css["container"]}
+                ref={props.ref}
+                class={`${props.class} ${css["container"]}`}
             >
                 <div class={css["progress-bar"]}>
                     <div class={css["progress-bar-indeterminable"]}></div>

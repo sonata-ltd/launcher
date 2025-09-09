@@ -42,7 +42,18 @@
 
 
     &.sm {
+        &.icon {
+            padding: 7px;
+        }
+    }
+
+    &.md {
+        padding: 9px 10px;
+    }
+
+    &.icon {
         display: flex;
+        gap: 5px;
 
         &>svg {
             height: 20px;
@@ -51,8 +62,8 @@
         }
     }
 
-    &.icon {
-        padding: 7px;
+    &.start-align {
+        text-align: start;
     }
 
     &.primary {
@@ -74,7 +85,7 @@
         background: @btn-secondary-bg;
         color: @btn-secondary-color;
 
-        .av-text-sm-s;
+        .av-text-sm-r;
 
         .disabled-defines(@btn-secondary-bg, @btn-secondary-color, true);
 
@@ -120,5 +131,13 @@
 
     &:focus {
         box-shadow: @focus-shadow-compensation, @focus-shadow;
+    }
+}
+
+.expand {
+    width: 100%;
+
+    button {
+        width: 100%;
     }
 }

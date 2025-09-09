@@ -9,6 +9,8 @@ import 'overlayscrollbars/overlayscrollbars.css';
 import { useTabs } from 'lib/tabs';
 import HeaderAnimation from './anims';
 import { useLocalRouter } from 'lib/localRouter';
+import { Tasks } from 'widgets/Tasklist';
+import { Spinner } from 'uikit/components/Spinner/spinner';
 
 export const tabStyles = {
     enter: {
@@ -23,7 +25,7 @@ export const tabStyles = {
 
 
 const Header: Component = (props: any) => {
-    const [currentRoute, {setRoute}] = useLocalRouter();
+    const [currentRoute, { setRoute }] = useLocalRouter();
     const [headerTabs, { addHeaderTab, removeHeaderTab }] = useTabs();
     const [selectedTab, setSelectedTab] = createSignal(0);
 
@@ -89,7 +91,8 @@ const Header: Component = (props: any) => {
     return (
         <>
             <header class={styles["app-header"]}>
-                <div ref={headerMenu} class={styles["header-menu"]}>
+                <div class={styles["widgets"]}></div>
+                <div ref={headerMenu} class={styles["header-tabs"]}>
                     <For each={headerTabs()}>{(tabInstance, i) =>
                         <button
                             class={styles["header-tab"]}
@@ -102,6 +105,9 @@ const Header: Component = (props: any) => {
                         </button>
                     }
                     </For>
+                </div>
+                <div class={styles["widgets"]}>
+                    <Tasks rounded />
                 </div>
             </header>
         </>

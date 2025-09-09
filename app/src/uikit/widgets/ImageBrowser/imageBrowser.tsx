@@ -1,22 +1,17 @@
-import { Accessor, createEffect, createRoot, createSignal, For, Setter, Show } from "solid-js"
-import { ContentStack, Window } from "uikit/components/Window";
-import ImageProcessorWorker from "@/lib/webWorkers/imageProcessor.ts?worker";
+import { Accessor, createEffect, createSignal, For, Setter, Show } from "solid-js";
+import { Window } from "uikit/components/Window";
 
-import css from "./imageBrowser.module.less";
-import Button from "uikit/components/Button";
-import { ContentWrapper, WindowControls } from "uikit/components/Window/window";
 import { Layout_Grid_01 } from "components/Icons/layout-grid-01";
-import { createSign } from "node:crypto";
-import { ButtonTypes } from "uikit/components/Button/button";
-import { ContentLoadingIndicator } from "uikit/components/Indication/loading";
-import { wrap } from "comlink";
-import { ImageWorkerAPI } from "lib/webWorkers/imageProcessor";
+import { InsertionImagesStore, LocalImageElement } from "lib/dbInterface/images/handler";
 import { useDBData } from "lib/dbInterface/provider";
-import { InsertionImagesStore, LocalImageElement, LocalImageEntry } from "lib/dbInterface/images/handler";
+import { animate } from "motion";
 import { createStore } from "solid-js/store";
-import { animate, spring } from "motion";
-import { animationValues as av } from '../../components/definitions';
+import Button from "uikit/components/Button";
+import { ContentLoadingIndicator } from "uikit/components/Indication/loading";
+import { ContentWrapper, WindowControls } from "uikit/components/Window/window";
 import { calcStringWidth } from "utils/renderedObjectsCalc";
+import { animationValues as av } from '../../components/definitions';
+import css from "./imageBrowser.module.less";
 
 
 type ImageBroserProps = {
@@ -30,8 +25,6 @@ export const ImageBrowser = (props: ImageBroserProps) => {
     const [selectedImage, setSelectedImage] = createSignal<
         undefined | { name: string, secondAttribute: string }
     >(undefined);
-
-    const [images, setImages] = createSignal<undefined | LocalImageElement[]>(undefined);
 
     const [insertionImages, setInsertionImages] = createStore<InsertionImagesStore>({
         images: [],
@@ -60,8 +53,6 @@ export const ImageBrowser = (props: ImageBroserProps) => {
         if (value !== null) {
             setInsertionImages("images", (prev) => {
                 if (prev.length) {
-                    let i = insertionImages.inserted;
-
                     return prev.map((item) => {
                         const i = insertionImages.inserted;
 
@@ -111,9 +102,10 @@ export const ImageBrowser = (props: ImageBroserProps) => {
 
                 setLastInsertion("isRunning", false);
 
+                // Remove temporary elements
                 setInsertionImages("images", (prev) => {
-                    return prev.slice(0, -(files.length - lastInsertion.inserted));
-                })
+                    return prev.filter(item => item.preview !== undefined);
+                });
 
                 setTimeout(() => {
                     animateUploadingContainer(false, () => {
@@ -258,11 +250,12 @@ export const ImageBrowser = (props: ImageBroserProps) => {
                                 </div>
                                 <Button secondary icon>
                                     <Layout_Grid_01 />
+                                    Change
                                 </Button>
                             </div>
                             <div class={css["content-wrapper"]}>
                                 <For each={insertionImages.images}>
-                                {(image, i) => (
+                                {(image) => (
                                     <>
                                         <button
                                             class={css["item"]}

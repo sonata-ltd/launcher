@@ -10,6 +10,7 @@
     gap: 10px;
     position: relative;
     width: 150px;
+    flex-shrink: 0;
 
 
     .preview {
@@ -17,12 +18,12 @@
         width: 100%;
         aspect-ratio: 1 / 1;
         position: relative;
-        border: 1px solid rgba(0, 0, 0, 0.1);
+        /* border: 1px solid rgba(0, 0, 0, 0.1); */
         border-radius: 20px;
         background: #FDFDFD;
 
         /* background: #FDFDFD; */
-        border: 2px solid #EBEBEB;
+        outline: 2px solid #EBEBEB;
         /* box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.25); */
         border-radius: 20px;
         overflow: hidden;
@@ -32,14 +33,18 @@
             height: 100%;
             width: 100%;
             display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
             position: absolute;
 
             opacity: 0;
             z-index: 2;
 
-            .button {
+            /* .button {
                 margin: auto;
-            }
+            } */
         }
 
         .shade {

@@ -5,5 +5,6 @@ import { operationEventSchema } from "./OperationEvent";
 
 
 export const operationMessageSchema = z.object({
+    base: baseMessageSchema,
     data: operationEventSchema,
-}).merge(baseMessageSchema);
+})

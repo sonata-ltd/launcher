@@ -32,26 +32,26 @@ export interface route {
 export const routes: route[] = [
     {
         path: routeNames.NEWS,
-        component: lazy(() => import("@/pages/NewsList/news.tsx")),
+        component: lazy(() => import("./pages/NewsList/news.tsx")),
     },
     {
         path: routeNames.INSTANCES,
-        component: lazy(() => import(`@/pages/Instances/instances.tsx`)),
+        component: lazy(() => import(`./pages/Instances/instances.tsx`)),
     },
     {
         path: "/debug/uikit",
-        component: lazy(() => import("@/pages/Debug/rendering.tsx")),
+        component: lazy(() => import("./pages/Debug/rendering.tsx")),
     },
     {
         path: "/debug/uikit/typography",
-        component: lazy(() => import("@/pages/Debug/Typography/typography.tsx")),
+        component: lazy(() => import("./pages/Debug/Typography/typography.tsx")),
     },
     {
         path: "/debug/uikit/colors",
-        component: lazy(() => import("@/pages/Debug/Colors/colors.tsx")),
+        component: lazy(() => import("./pages/Debug/Colors/colors.tsx")),
     },
     {
         path: "*404",
-        component: lazy(() => import("@/pages/404.tsx")),
+        component: lazy(() => import("./pages/404.tsx")),
     }
 ]

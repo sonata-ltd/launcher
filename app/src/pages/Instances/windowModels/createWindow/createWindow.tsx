@@ -1,12 +1,9 @@
-import { ManifestDBID } from "lib/dbInterface/manifests/handler";
-import { VersionManifestSchema } from "lib/dbInterface/manifests/types";
-import { useDBData } from "lib/dbInterface/provider";
-import { httpCoreApi, validateMessageType } from "lib/httpCoreApi";
 import { InstanceInfo, useInstancesState } from "lib/instancesManagment";
 import { useWebSocket } from "lib/wsManagment/wsManager";
 import { createEffect, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 import { GetButtonsConfig } from "./buttonConfig";
+import { v4 as uuidv4 } from "uuid";
 
 
 enum WindowPages {
@@ -23,19 +20,15 @@ export const createWindowModel = () => {
     const ws = useWebSocket("initInstance");
     const { sendMessage, messages, getMessagesTracked, state } = ws;
 
-    const [{ getManifestVersionsMap, getVersionData }] = useInstancesState();
+    const [{ getVersionUrl }] = useInstancesState();
 
     const [selectedVersionStore, setSelectedVersionStore] = createStore<InstanceInfo>({
+        loader: undefined,
         name: undefined,
-        version: undefined,
-        loader: undefined
+        version: undefined
     });
 
-    createEffect(() => {
-        console.log(selectedVersionStore);
-    })
-
-    const [isWindowVisible, setWindowVisible] = createSignal(true);
+    const [isWindowVisible, setWindowVisible] = createSignal(false);
     const [windowIndex, setWindowIndex] = createSignal(0);
     let prevWindowIndex: undefined | number = undefined;
 
@@ -66,13 +59,14 @@ export const createWindowModel = () => {
         const selectedVersionValue = selectedVersionStore;
         if (!selectedVersionValue || !selectedVersionValue.version) return;
 
-        const version = getVersionData(selectedVersionValue.version);
-        if (!version) return;
+        const versionUrl = getVersionUrl(selectedVersionValue.version);
+        if (!versionUrl) return;
 
+        console.log(selectedVersionValue.name);
         const sendObject = JSON.stringify({
-            name: selectedVersionValue.name || version.id,
-            url: version.url,
-            request_id: "asd"
+            name: selectedVersionValue.name || selectedVersionValue.version,
+            url: versionUrl,
+            request_id: uuidv4()
         });
 
         sendMessage(sendObject);

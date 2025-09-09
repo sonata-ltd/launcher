@@ -19,7 +19,6 @@ const Page: Component = () => {
     const useCreateWindowModel = createWindowModel();
     const useImageBrowserModel = imageBrowserModel();
 
-
     return (
         <>
             <ImageBrowser
@@ -37,9 +36,15 @@ const Page: Component = () => {
                     index={useCreateWindowModel.windowIndex}
                     prevIndex={useCreateWindowModel.prevWindowIndex}
                 >
-                    <div>
-                        <VerticalStack>
-                            <FlexBox expand>
+                    <VerticalStack>
+                        <FlexBox>
+                            <Card
+                                size="135px"
+                                img={useImageBrowserModel.imageSrc()}
+                            >
+                                <Button secondary onClick={() => useImageBrowserModel.setImageBrowserVisible(true)}>Change</Button>
+                            </Card>
+                            <VerticalStack expand>
                                 <Input
                                     label="Name"
                                     placeholder={useCreateWindowModel.getNamePlaceholder("Instance Name")}
@@ -51,23 +56,26 @@ const Page: Component = () => {
                                     label="Tags"
                                     placeholder="Instance Tags"
                                 />
-                            </FlexBox>
+                            </VerticalStack>
+                        </FlexBox>
+                        <VerticalStack>
                             <Dropdown
                                 value={useCreateWindowModel.selectedVersionStore.version}
                                 onChange={useCreateWindowModel.selectVersionId}
                                 label="Versions"
                                 placeholder="Instance Version"
+                                typeable
                             >
-                                <For each={[...getManifestVersionsMap().values()]}>
+                                <For each={[...getManifestVersionsMap().keys()]}>
                                     {(version) => (
-                                        <Dropdown.Item value={version.id} searchValue={version.id}>
-                                            {version.id}
+                                        <Dropdown.Item value={version} searchValue={version}>
+                                            {version}
                                         </Dropdown.Item>
                                     )}
                                 </For>
                             </Dropdown>
                         </VerticalStack>
-                    </div>
+                    </VerticalStack>
                     <ProgressDisplay
                         wsMsgs={useCreateWindowModel.getWSMessages}
                         getMessagesTracked={useCreateWindowModel.getMessagesTracked}
@@ -85,8 +93,18 @@ const Page: Component = () => {
                             <Card
                                 name={instance.name}
                                 description={`${instance.loader} ${instance.version}`}
-                                runFn={() => runInstance(instance.version, instance.name)}
-                            />
+                            >
+                                <Button
+                                    class={css["button"]}
+                                    onClick={() => runInstance(instance)}
+                                    secondary
+                                >Play</Button>
+                                <Button
+                                    class={css["button"]}
+                                    onClick={() => alert("not impl")}
+                                    secondary
+                                >Options</Button>
+                            </Card>
                         }
                         </For>
                     </div>

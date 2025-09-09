@@ -1,4 +1,4 @@
-import { createEffect, For, onMount, Show, useContext, type Component } from 'solid-js';
+import { createEffect, createSignal, For, onMount, Show, useContext, type Component } from 'solid-js';
 import Header from 'widgets/Header/header';
 import { TabsProvider } from 'lib/tabs';
 import { createOverlayScrollbars } from 'overlayscrollbars-solid';
@@ -14,6 +14,7 @@ import { LoggerProvider } from 'lib/logger';
 import { KeepAliveWrapper, KeepAliveProvider } from 'lib/keepAlive';
 import { DBDataProvider } from 'lib/dbInterface/provider';
 import { WindowHolder } from 'components/WindowHolder/windowHolder';
+import { StartupScreen } from 'lib/startupScreen';
 
 
 const App: Component = (props: any) => {
@@ -34,20 +35,29 @@ const App: Component = (props: any) => {
         initBodyOverlayScrollbars(document.body);
     });
 
+    const [startupScreenPassed, setStartupScreenPassed] = createSignal(true);
+
 
     return (
         <>
-            <WebSocketProvider>
-                <DBDataProvider>
-                    <InstancesStateProvider>
-                        <WindowHolder />
-                        <TabsProvider>
-                            <Header />
-                        </TabsProvider>
-                        <RenderRoute keepAlive="cacheAll" />
-                    </InstancesStateProvider>
-                </DBDataProvider>
-            </WebSocketProvider>
+            <Show
+                when={startupScreenPassed() === true}
+                fallback={
+                    <StartupScreen />
+                }
+            >
+                <WebSocketProvider>
+                    <DBDataProvider>
+                        <InstancesStateProvider>
+                            <WindowHolder />
+                            <TabsProvider>
+                                <Header />
+                            </TabsProvider>
+                            <RenderRoute keepAlive="cacheAll" />
+                        </InstancesStateProvider>
+                    </DBDataProvider>
+                </WebSocketProvider>
+            </Show>
         </>
     );
 };

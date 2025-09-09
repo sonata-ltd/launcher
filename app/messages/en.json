@@ -6,6 +6,7 @@
     "verify_files": "Verify Files",
     "create_structure": "Create Structure",
     "scan_instances": "Scan Instances",
+    "in_progress__download": "Downloading",
     "in_progress__fetch_manifest": "Fetching Manifest",
     "in_progress__download_libs": "Downloading Libraries",
     "in_progress__download_assets": "Downloading Assets",

@@ -1,3 +1,4 @@
+import { JSXElement, Show } from "solid-js";
 import css from "./input.module.less";
 
 
@@ -8,35 +9,49 @@ interface IInput {
     hint?: string,
     width?: number,
     error?: boolean,
-    onInput?: (e: InputEvent) => void
+    onInput?: (e: InputEvent) => void,
+    value?: string,
+    children?: JSXElement | JSXElement[],
+    expand?: boolean
 }
 
 export const Input = (props: IInput) => {
     return (
         <>
             <div class={css["wrapper"]}>
-                {props.label
-                    && <p class={css["label"]}>{props.label}</p>
-                }
-                <input
-                    type="text"
-                    placeholder={props.placeholder}
-                    class={css["input"]}
-                    onInput={props.onInput}
-                    classList={{
-                        [css["error"]]: props.error
-                    }}
-                />
-                {props.hint
-                    && <p
-                        class={css["hint"]}
+                <div
+                    class={css["container"]}
+                    style={props.expand ? `width: 100%` : props.width ? `width: ${props.width}px` : ``}
+                >
+                    {props.label
+                        && <p class={css["label"]}>{props.label}</p>
+                    }
+                    <input
+                        type="text"
+                        placeholder={props.placeholder}
+                        class={css["input"]}
+                        onInput={props.onInput}
+                        value={props.value ? props.value : ""}
                         classList={{
                             [css["error"]]: props.error
                         }}
-                    >
-                        {props.hint}
-                    </p>
-                }
+                    />
+                    {props.hint
+                        && <p
+                            class={css["hint"]}
+                            classList={{
+                                [css["error"]]: props.error
+                            }}
+                        >
+                            {props.hint}
+                        </p>
+                    }
+                </div>
+                <Show
+                    when={props.children}
+                >
+                    {props.children}
+                </Show>
             </div>
         </>
     )

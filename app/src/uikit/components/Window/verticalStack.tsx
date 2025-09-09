@@ -4,7 +4,8 @@ import css from "./window.module.less";
 
 
 export interface IVerticalStack {
-    children: JSX.Element[],
+    children: JSX.Element | JSX.Element[],
+    expand?: boolean
 }
 
 export const VerticalStack = (props: IVerticalStack) => {
@@ -12,6 +13,9 @@ export const VerticalStack = (props: IVerticalStack) => {
         <>
             <div
                 class={css["vertical-stack"]}
+                classList={{
+                    [css.expand]: props.expand,
+                }}
             >
                 {props.children}
             </div>

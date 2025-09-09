@@ -1,6 +1,6 @@
-import { debugComputation } from "@solid-devtools/logger";
-import { ManifestDBID } from "lib/dbInterface/manifests/handler";
-import { VersionManifestSchema, VersionSchema } from "lib/dbInterface/manifests/types";
+import { ManifestDBID } from "lib/dbInterface/handler";
+import { VersionSchema } from "lib/dbInterface/manifests/types/prism";
+import { PrismVersionManifestSchema } from "lib/dbInterface/manifests/types/prism";
 import { useDBData } from "lib/dbInterface/provider";
 import { validateMessageType } from "lib/httpCoreApi";
 import { operationEventSchema, operationUpdateSchema } from "lib/wsManagment/bindings";
@@ -11,6 +11,10 @@ import { JSX } from "solid-js/jsx-runtime";
 import { z } from "zod";
 
 
+type UnifiedVersionInfo = {
+    id: string,
+    url: string,
+}
 
 export type InstanceInfo = {
     loader: string | undefined,
@@ -21,37 +25,33 @@ export type InstanceInfo = {
 type Store = [
     {
         instances: Accessor<InstanceInfo[]>,
-        runInstance: (versionId: string, instanceName: string) => void,
-        getVersionData: (versionId: string) => z.infer<typeof VersionSchema> | undefined,
-        getManifestVersionsMap: () => Map<string, z.infer<typeof VersionSchema>>
+        runInstance: (instance: InstanceInfo) => void,
+        getVersionUrl: (versionId: string) => UnifiedVersionInfo["url"] | undefined,
+        getManifestVersionsMap: () => Map<string, string>,
+        updateInstancesList: () => void,
     }
 ]
 
 const InstancesStateContext = createContext<Store>();
+const currentManifestProvider = ManifestDBID.unifiedVersionManifest;
 
 export function InstancesStateProvider(props: { children: JSX.Element }) {
     // const sockets = useWebSockets();
     // const { state, messages, sendMessage } = sockets.listInstances;
 
     const [dbMethods] = useDBData();
-    let manifestVersionsMap = new Map<string, z.infer<typeof VersionSchema>>();
+    let manifestVersionsMap = new Map<UnifiedVersionInfo["id"], UnifiedVersionInfo["url"]>();
 
     createEffect(async () => {
-        dbMethods.getManifest(ManifestDBID.globalVersionManifest).then((data) => {
-            const parseResult = validateMessageType(VersionManifestSchema, data);
-
-            if (parseResult) {
-                console.log("ok");
-                console.log("asdsad");
-                for (const version of parseResult.versions) {
-                    manifestVersionsMap.set(version.id, version);
+        dbMethods.getManifest(currentManifestProvider).then((data) => {
+            if (data) {
+                for (const version of data) {
+                    manifestVersionsMap.set(version.id, version.url);
                 }
             } else {
-                console.warn(parseResult);
+                console.error("data from DB is null");
             }
         })
-        // console.log(data());
-
     })
 
     const wsListInstances = useWebSocket("listInstances", true);
@@ -63,21 +63,23 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
         return manifestVersionsMap;
     }
 
-    const getVersionData = (versionId: string): z.infer<typeof VersionSchema> | undefined => {
-        return manifestVersionsMap.get(versionId);
+    const getVersionUrl = (id: string): UnifiedVersionInfo["url"] | undefined => {
+        return manifestVersionsMap.get(id);
     }
 
-    const runInstance = (versionId: string, instanceName: string) => {
-        const version = getVersionData(versionId);
-        if (!version) {
-            console.error(`Version with id ${versionId} not found`);
+    const runInstance = (instance: InstanceInfo) => {
+        if (!instance.loader) return;
+        if (!instance.name) return;
+        if (!instance.version) return;
+
+        const versionUrl = getVersionUrl(instance.version);
+        if (!versionUrl) {
+            console.error(`Version url with id ${instance.version} not found`);
             return;
         }
 
         const info = new Map<string, string>();
         info.set("${auth_player_name}", "Melicta");
-        info.set("${version_name}", version.id);
-        info.set("${version_type}", version.type);
         info.set("${user_type}", "legacy");
         info.set("${auth_uuid}", "99b3e9029022309dae725bb19e275ecb");
         info.set("${auth_access_token}", "[asdasd]");
@@ -88,8 +90,8 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
         });
 
         const sendObject = JSON.stringify({
-            name: instanceName,
-            url: version.url,
+            name: instance.name,
+            url: versionUrl,
             request_id: "asd",
             info: infoObject
         });
@@ -105,8 +107,12 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
         setInstances((prev) => prev.filter((t) => t !== info));
     }
 
-    createEffect(() => {
+    const updateInstancesList = () => {
         wsListInstances.sendMessage("");
+    }
+
+    createEffect(() => {
+        updateInstancesList();
     }, []);
 
     createEffect(() => {
@@ -143,7 +149,7 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
     const handleOperationUpdate = (data: z.infer<typeof operationUpdateSchema>) => {
         if (
             data.type === "Determinable"
-            && data.details.target.type === "Instance"
+            && data?.details?.target?.type === "Instance"
         ) {
             if (data.details.target.info !== null) {
                 const infoSlice = data.details.target.info;
@@ -171,8 +177,9 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
         {
             instances,
             runInstance,
-            getVersionData,
-            getManifestVersionsMap
+            getVersionUrl,
+            getManifestVersionsMap,
+            updateInstancesList
         }
     ]
 

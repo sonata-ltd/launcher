@@ -1,0 +1,124 @@
+// Base container styles
+.SpinnerContainer {
+  position: relative; // Needed for absolute positioning of text
+  display: inline-block; // Behaves like an inline element but allows width/height
+  width: fit-content; // Adjusts to SVG size
+  height: fit-content;
+  overflow: visible; // Allows potential stroke overflow if needed
+  vertical-align: middle; // Better alignment with surrounding text/elements
+}
+
+// SVG element itself
+.SpinnerSvg {
+  display: block; // Removes extra space below SVG
+  transform-origin: center center; // Rotation origin
+
+  // --- Circle Styles ---
+  .backgroundCircle {
+    // Usually static, color set by prop
+  }
+
+  .progressCircle {
+    transform-origin: center center;
+    /* transition: stroke-dashoffset 0.3s ease; // Smooth transition for value changes */
+    // Base rotation for indeterminate state (starts at the top)
+    transform: rotate(-90deg);
+
+    /* stroke-dasharray: var(--spinner-circ);
+    stroke-dashoffset: var(--spinner-offset-start); */
+  }
+}
+
+.reverse .progressCircle {
+    transform: scale(-1, 1) rotate(-90deg);
+}
+
+// --- Indeterminate Animation Styles ---
+
+// Keyframes for rotation
+@keyframes spin {
+  from { transform: rotate(-90deg); } // Start at the top
+  to { transform: rotate(270deg); }   // Full circle rotation
+}
+
+@keyframes loadingAnim {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes awaitingAnim {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes done-anim {
+    to {
+        stroke-dasharray: calc(1 * var(--spinner-circumference)), var(--spinner-circumference); // 75% filled arc
+    }
+}
+
+// Apply animations when indeterminate
+.SpinnerSvg.indeterminateAnimation {
+  .progressCircle {
+    stroke-dasharray: calc(0.75 * var(--spinner-circumference)), var(--spinner-circumference); // 75% filled arc
+  }
+
+  &.linearAnimation .progressCircle {
+     animation: spin 0.45s infinite;
+     animation-timing-function: linear; // Both animations linear
+  }
+
+  &.linearAnimation.done .progressCircle {
+      animation: spin 0.45s infinite linear,
+        done-anim 2s ease-out forwards;
+  }
+
+  &.easeAnimation .progressCircle {
+    animation: awaitingAnim .75s infinite;
+    animation-timing-function: cubic-bezier(0.4, 0, .2, 1);
+  }
+
+  &.easeAnimation.done .progressCircle {
+    animation: awaitingAnim .75s infinite cubic-bezier(0.4, 0, .2, 1),
+        done-anim var(--spinner-done-anim-dur) ease-out forwards;
+  }
+}
+
+@keyframes draw-circle {
+  from {
+    stroke-dashoffset: 69;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes draw-check {
+  from {
+    stroke-dashoffset: 16;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.checkmarkDone {
+    path:nth-child(1) {
+        stroke-dasharray: 16;
+        stroke-dashoffset: 16;
+        animation: draw-check 0.2s ease-out forwards;
+    }
+}
+
+// Value text styling (already handled by inline styles, but can add more here)
+.valueText {
+  // Inline styles handle positioning, font-size, color
+  pointer-events: none; // Text shouldn't block interaction with underlying elements
+  white-space: nowrap; // Prevent percentage wrapping
+}
+
+.icon-button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
