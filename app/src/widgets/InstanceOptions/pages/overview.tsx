@@ -1,34 +1,80 @@
-import { createSignal, For } from "solid-js"
-import Button from "uikit/components/Button"
+import { createEffect, createSignal, For } from "solid-js";
+import Button from "uikit/components/Button";
 import { ButtonSizes } from "uikit/components/Button/button";
 import Dropdown from "uikit/components/Dropdown/dropdown";
-import { Input } from "uikit/components/Input"
-import css from "../instanceOptions.module.less";
+import { Input } from "uikit/components/Input";
 import { DescriptionText, OptionsSection } from "uikit/components/Section/section";
+import { httpCoreApi } from "lib/httpCoreApi";
+import { InstanceOptionPage } from "../instanceOptionsWindow";
+import { validateMessageType } from "lib/wsManagment";
+import { expectedType, tryValidateMessageAs } from "lib/msgBindings/parse";
+import { optionUpdateMessageSchema } from "lib/msgBindings/bindings/instance/options/OptionUpdateMessage";
+import { instanceFieldsSchema } from "lib/msgBindings/bindings/instance/InstanceFields";
+import { exportTypesSchema } from "lib/msgBindings";
+import { z } from "zod";
 
-enum InstanceExportType {
-    SonataType = "Sonata Type",
-    MultiMC = "MultiMC Compatible",
-    Modrinth = "Modrinth"
-}
+type ExportType = z.infer<typeof exportTypesSchema>;
 
 export const OverviewPage = () => {
-    const instanceExportArray = Object.values(InstanceExportType);
-    const [chosenExportType, setChosenExportType] = createSignal<InstanceExportType>(instanceExportArray[0]);
+    const [name, setName] = createSignal<string | undefined>();
+    const [changedName, setChangedName] = createSignal<string | undefined>();
+    const [nameApplyActive, setNameApplyActive] = createSignal(false);
+    const [tags, setTags] = createSignal<string | undefined>();
 
-    const selectExportType = (index: number) => {
-        setChosenExportType(instanceExportArray[index]);
+    const exportTypesValues = exportTypesSchema.options;
+    const [chosenExportType, setChosenExportType] = createSignal<ExportType>("Sonata");
+
+    const selectExportType = (type: ExportType) => {
+        setChosenExportType(type);
     }
+
+    const changeName = () => {
+        console.log(changedName());
+    }
+
+    const checkChangedName = (ev: InputEvent) => {
+        setChangedName((ev.target as HTMLInputElement).value);
+
+        if (changedName() !== name()) {
+            setNameApplyActive(true);
+        } else {
+            setNameApplyActive(false);
+        }
+    }
+
+    createEffect(() => {
+        const run = async () => {
+            const raw = await httpCoreApi().getInstanceOptionsData(10, InstanceOptionPage.Overview);
+            const parsed = tryValidateMessageAs(optionUpdateMessageSchema, raw, expectedType.option);
+            if (parsed.success) {
+                const safeOption = instanceFieldsSchema.parse(parsed.payload.option);
+                if ("Overview" in safeOption) {
+                    const data = safeOption.Overview;
+                    console.log(data);
+
+                    setName(data.name || undefined);
+                    setTags(data.tags || undefined);
+
+                    if (data.export_type)
+                        setChosenExportType(data.export_type);
+                }
+            } else {
+                console.error("Validation failed: ", parsed.error);
+            }
+        }
+
+        run();
+    })
 
     return (
         <>
             <OptionsSection label="Name">
-                <Input value="Snipperly SMP" width={265}>
-                    <Button secondary>Apply</Button>
+                <Input value={name()} onInput={(ev) => checkChangedName(ev)} width={265}>
+                    <Button disabled={!nameApplyActive()} secondary onClick={changeName}>Apply</Button>
                 </Input>
             </OptionsSection>
             <OptionsSection label="Tags">
-                <Input value="SMP, Fabric, Modded" width={265}>
+                <Input value={tags()} placeholder="Empty" width={265}>
                     <Button secondary>Apply</Button>
                 </Input>
             </OptionsSection>
@@ -44,7 +90,7 @@ export const OverviewPage = () => {
                         </>
                     }
                 >
-                    <For each={instanceExportArray}>
+                    <For each={exportTypesValues}>
                         {(item) => (
                             <Dropdown.Item value={item} searchValue={item}>
                                 {item}

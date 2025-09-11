@@ -1,4 +1,4 @@
-import { operationStageSchema, operationUpdateSchema, processStatusSchema } from "lib/wsManagment/bindings"
+import { operationStageSchema, operationUpdateSchema, processStatusSchema } from "lib/msgBindings"
 import { createMutable } from "solid-js/store"
 import { z } from "zod"
 import { handleWSMessage } from "./parse"

@@ -6,6 +6,7 @@ const Page: Component = () => {
         <>
             <InstanceOptionsWindow
                 name="Snipperly SMP"
+                id={10}
             />
         </>
     )

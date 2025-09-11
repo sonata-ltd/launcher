@@ -7,7 +7,7 @@ import { operationFinishSchema } from "./OperationFinish";
 
 export const operationEventSchema = z.union([
   z.object({
-    start: operationStartSchema,
+      start: operationStartSchema,
   }),
   z.object({
     update: operationUpdateSchema,

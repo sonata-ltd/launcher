@@ -5,7 +5,7 @@ import { Accessor, createEffect, createMemo, createSignal, For, on, onMount, Sho
 import { createOverlayScrollbars } from "overlayscrollbars-solid";
 import 'overlayscrollbars/overlayscrollbars.css';
 import { SetStoreFunction } from "solid-js/store";
-import { taskSchema } from "lib/wsManagment/bindings/Task";
+import { taskSchema } from "lib/msgBindings";
 import { validateMessageTypeCustom } from "lib/wsManagment/parser";
 import { useTranslatedMessages } from "lib/localization/useMessages";
 import { Task, TaskEntry } from "./tasks";

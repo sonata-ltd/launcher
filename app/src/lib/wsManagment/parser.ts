@@ -1,9 +1,9 @@
 import { z, ZodTypeAny } from "zod";
-import { wsMessageSchema } from "./bindings/WsMessage";
+import { indexMessageSchema } from "../msgBindings";
 
-export const validateMessageType = (rawMsg: any): z.infer<typeof wsMessageSchema> | false => {
+export const validateMessageType = (rawMsg: any): z.infer<typeof indexMessageSchema> | false => {
     try {
-        return wsMessageSchema.parse(rawMsg) as z.infer<typeof wsMessageSchema>;
+        return indexMessageSchema.parse(rawMsg) as z.infer<typeof indexMessageSchema>;
     } catch (e) {
         console.log("Not valid: ", e);
         console.log(rawMsg);

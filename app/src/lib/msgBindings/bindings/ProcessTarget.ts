@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { targetStatusSchema } from "./TargetStatus";
 import { progressUnitSchema } from "./ProgressUnit";
-import { scanIntegritySchema } from "./ScanIntegrity";
 import { scanInfoSchema } from "./ScanInfo";
+import { scanIntegritySchema } from "./ScanIntegrity";
+import { targetStatusSchema } from "./TargetStatus";
 
 
 export const processTargetSchema = z.union([

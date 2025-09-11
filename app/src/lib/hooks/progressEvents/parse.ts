@@ -1,5 +1,5 @@
 import { validateMessageType } from "lib/wsManagment";
-import { operationEventSchema, operationStartSchema, operationUpdateSchema } from "lib/wsManagment/bindings";
+import { operationEventSchema, operationStartSchema, operationUpdateSchema } from "lib/msgBindings";
 import { z } from "zod";
 import { ProgressState, StageObject } from "./useProgressEvents";
 

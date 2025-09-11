@@ -1,12 +1,11 @@
 import Button from "uikit/components/Button"
 import { ButtonSizes, ButtonTypes } from "uikit/components/Button/button"
-import { Input } from "uikit/components/Input"
 import { Sidebar } from "uikit/components/Sidebar/sidebar"
 import { VerticalStack } from "uikit/components/Window"
 import { ContentWrapper } from "uikit/components/Window/window"
 import { GetButtonsConfig } from "./buttonConfig"
 import { createMemo, createSignal, For, JSX } from "solid-js"
-import { Window } from "uikit/components/Window";
+import { Window } from "uikit/components/Window"
 import { OverviewPage } from "./pages/overview"
 import { LogsPage } from "./pages/logs"
 import { ModsPage } from "./pages/mods"
@@ -16,7 +15,7 @@ import { SPPage } from "./pages/sp"
 import { WorldsPage } from "./pages/worlds"
 import { Dynamic } from "solid-js/web"
 
-import css from "./InstanceOptions.module.less";
+import css from "./InstanceOptions.module.less"
 import { StarsIcon } from "components/Icons/stars"
 import { PackageIcon } from "components/Icons/package"
 import { DatabaseIcon } from "components/Icons/database"
@@ -27,10 +26,11 @@ import { CodeSquareIcon } from "components/Icons/code-square"
 
 
 interface InstanceOptionsProps {
-    name: string;
+    name: string,
+    id: number
 }
 
-enum InstanceOptionPage {
+export enum InstanceOptionPage {
     Overview = "Overview",
     Mods = "Mods",
     Worlds = "Worlds",
@@ -61,7 +61,7 @@ const pages: PageConfig[] = [
     {
         id: "Overview",
         label: "Overview",
-        component: OverviewPage,
+        component: () => OverviewPage,
         icon: () => <StarsIcon />
     },
     {
@@ -106,6 +106,10 @@ const pagesMap = pages.reduce<Record<string, PageConfig>>((acc, page) => {
     acc[page.id] = page
     return acc
 }, {})
+
+export interface PageProps {
+    id: number
+}
 
 export const InstanceOptionsWindow = (props: InstanceOptionsProps) => {
     const [windowVisible, setWindowVisible] = createSignal(true);

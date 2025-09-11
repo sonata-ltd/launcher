@@ -4,7 +4,7 @@ import { useWebSocket } from "lib/wsManagment/manager";
 import { Tasklist } from "./tasklist";
 import { createStore } from "solid-js/store";
 import { z } from "zod";
-import { taskSchema } from "lib/wsManagment/bindings/Task";
+import { taskSchema } from "lib/msgBindings/Task";
 
 type TasksProps = {
     totalTasks?: number;

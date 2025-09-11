@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { apiUrl } from "./constants"
 import { ManifestDBID } from "lib/dbInterface/handler";
+import { InstanceOptionPage } from "widgets/InstanceOptions/instanceOptionsWindow";
 
 type Store = {
-    getVersionsManifest: (type: ManifestDBID) => Promise<JSON>
+    getVersionsManifest: (type: ManifestDBID) => Promise<JSON>,
+    getInstanceOptionsData: (id: number, page: InstanceOptionPage) => Promise<JSON>
 }
 
 export const httpCoreApi = (): Store => {
@@ -45,9 +47,33 @@ export const httpCoreApi = (): Store => {
         })
     }
 
+    const getInstanceOptionsData = (id: number, page: InstanceOptionPage): Promise<JSON> => {
+        let url = hostUrl + `/instance/${id}/${page}`;
+        console.log(url);
+
+        return new Promise((res, rej) => {
+            fetch(url, {
+                method: 'GET'
+            }).then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP Error, status: ${res.status}`);
+                }
+
+                return res.json();
+            })
+            .then(json => {
+                res(json);
+            })
+            .catch(err => {
+                rej(err);
+            })
+        })
+    }
+
 
     return {
-        getVersionsManifest
+        getVersionsManifest,
+        getInstanceOptionsData
     }
 }
 

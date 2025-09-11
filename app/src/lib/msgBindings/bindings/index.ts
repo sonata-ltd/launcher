@@ -19,5 +19,10 @@ export { stageErrorSchema } from "./StageError";
 export { stageResultSchema } from "./StageResult";
 export { stageStatusSchema } from "./StageStatus";
 export { targetStatusSchema } from "./TargetStatus";
+export { taskSchema } from "./Task";
+export { taskStatusSchema } from "./TaskStatus";
+export { taskProgressSchema } from "./TaskProgress";
+export { exportTypesSchema } from "./instance/options/overview/ExportTypes";
 
 export { baseMessageSchema } from "./BaseMessage";
+export { indexMessageSchema } from "./IndexMessage";

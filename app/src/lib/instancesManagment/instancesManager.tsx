@@ -3,8 +3,8 @@ import { VersionSchema } from "lib/dbInterface/manifests/types/prism";
 import { PrismVersionManifestSchema } from "lib/dbInterface/manifests/types/prism";
 import { useDBData } from "lib/dbInterface/provider";
 import { validateMessageType } from "lib/httpCoreApi";
-import { operationEventSchema, operationUpdateSchema } from "lib/wsManagment/bindings";
-import { wsMessageSchema } from "lib/wsManagment/bindings/WsMessage";
+import { operationEventSchema, operationUpdateSchema } from "lib/msgBindings";
+import { indexMessageSchema } from "lib/msgBindings";
 import { useWebSocket } from "lib/wsManagment/manager";
 import { Accessor, createContext, createEffect, createSignal, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
@@ -121,7 +121,7 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
         if (messages().length > 0) {
             const rawMsg = messages()[messages().length - 1];
 
-            const msg = validateMessageType(wsMessageSchema, rawMsg);
+            const msg = validateMessageType(indexMessageSchema, rawMsg);
             if (!msg) return;
 
             switch (msg.type) {

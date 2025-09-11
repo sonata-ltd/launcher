@@ -90,9 +90,13 @@ export const createWebSocketClient = (url: string, autoReconnect = true, reconne
         }
 
         socket.onmessage = (e) => {
-            const data = JSON.parse(e.data);
-            setMessages((prev) => [...prev, data]);
-            listeners.forEach(handler => handler(data));
+            try {
+                const data = JSON.parse(e.data);
+                setMessages((prev) => [...prev, data]);
+                listeners.forEach(handler => handler(data));
+            } catch (err) {
+                console.trace(`Failed to parse message: "${err}" from "${url}"`);
+            }
         }
     }
 

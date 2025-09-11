@@ -3,7 +3,6 @@ import { z } from "zod";
 import { baseMessageSchema } from "./BaseMessage";
 import { scanDataSchema } from "./ScanData";
 
-
 export const scanMessageSchema = z.object({
   base: baseMessageSchema,
   data: scanDataSchema,
