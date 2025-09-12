@@ -32,6 +32,10 @@ export default defineConfig({
         solidSvg(),
         tsconfigPaths(),
         babelMacros(),
+        paraglideVitePlugin({
+            project: "./project.inlang",
+            outdir: "./src/lib/localization/paraglide"
+        })
     ],
     worker: {
         plugins: () => [comlink()],

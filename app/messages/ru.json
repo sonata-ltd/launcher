@@ -1,3 +1,10 @@
 {
-    "$schema": "https://inlang.com/schema/inlang-message-format"
+    "$schema": "https://inlang.com/schema/inlang-message-format",
+    "fetch_manifest": "Извлечь Манифест",
+    "download_libs": "Загрузить Библиотеки",
+    "download_assets": "Загрузить Ассеты",
+    "in_progress__download": "Скачивание",
+    "in_progress__fetch_manifest": "Извлечение Манифеста",
+    "in_progress__download_libs": "Загрузка Библиотек",
+    "in_progress__download_assets": "Загрузка Ассетов"
 }
