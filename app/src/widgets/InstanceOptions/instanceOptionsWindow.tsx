@@ -4,7 +4,7 @@ import { Sidebar } from "uikit/components/Sidebar/sidebar"
 import { VerticalStack } from "uikit/components/Window"
 import { ContentWrapper } from "uikit/components/Window/window"
 import { GetButtonsConfig } from "./buttonConfig"
-import { createMemo, createSignal, For, JSX } from "solid-js"
+import { Accessor, createComputed, createEffect, createMemo, createSignal, For, JSX, onCleanup, Setter, Show } from "solid-js"
 import { Window } from "uikit/components/Window"
 import { OverviewPage } from "./pages/overview"
 import { LogsPage } from "./pages/logs"
@@ -23,11 +23,20 @@ import { ImageIcon } from "components/Icons/image"
 import { CameraLensIcon } from "components/Icons/camera-lens"
 import { FileIcon } from "components/Icons/file"
 import { CodeSquareIcon } from "components/Icons/code-square"
+import { debugComputation } from "@solid-devtools/logger"
 
 
 interface InstanceOptionsProps {
-    name: string,
-    id: number
+    id: number | undefined,
+    name: string | undefined,
+    windowVisible: Accessor<boolean>,
+    setWindowVisible: Setter<boolean>,
+    updateName: (name: string) => void
+}
+
+export interface InstancePageProps {
+    id: number,
+    updateName: (name: string) => void
 }
 
 export enum InstanceOptionPage {
@@ -40,7 +49,7 @@ export enum InstanceOptionPage {
     Settings = "Settings"
 }
 
-export const pageComponents: Record<InstanceOptionPage, () => JSX.Element> = {
+export const pageComponents: Record<InstanceOptionPage, (props: InstancePageProps) => JSX.Element> = {
     [InstanceOptionPage.Overview]: OverviewPage,
     [InstanceOptionPage.Mods]: ModsPage,
     [InstanceOptionPage.Worlds]: WorldsPage,
@@ -53,7 +62,7 @@ export const pageComponents: Record<InstanceOptionPage, () => JSX.Element> = {
 interface PageConfig {
     id: string
     label: string
-    component: () => JSX.Element
+    component: (props: InstancePageProps) => JSX.Element
     icon: () => JSX.Element
 }
 
@@ -61,7 +70,7 @@ const pages: PageConfig[] = [
     {
         id: "Overview",
         label: "Overview",
-        component: () => OverviewPage,
+        component: OverviewPage,
         icon: () => <StarsIcon />
     },
     {
@@ -112,26 +121,53 @@ export interface PageProps {
 }
 
 export const InstanceOptionsWindow = (props: InstanceOptionsProps) => {
-    const [windowVisible, setWindowVisible] = createSignal(true);
     const [currentPageId, setCurrentPageId] = createSignal(pages[0].id)
+    const [buildedPagesProps, setBuildedPagesProps] = createSignal<InstancePageProps | undefined>();
+    const [instanceName, setInstanceName] = createSignal<string>();
+
+    const updateName = (name: string) => {
+        props.updateName(name);
+        setInstanceName(name);
+    }
 
     const closeWindow = () => {
-        setWindowVisible(false);
+        props.setWindowVisible(false);
     }
 
     const buttonConfig = GetButtonsConfig({ closeWindow });
     const currentButtons = () => buttonConfig[0];
 
     const constructedWindowName = createMemo(
-        () => `${props.name} > ${pagesMap[currentPageId()].label}`
+        () => `${instanceName()} > ${pagesMap[currentPageId()].label}`
     );
 
     const currentConfig = createMemo(() => pagesMap[currentPageId()])
 
+    createEffect(() => {
+        if (props.windowVisible()) {
+
+            // For explicit remount
+            setBuildedPagesProps(undefined);
+
+            Promise.resolve().then(() => {
+                if (props.name) {
+                    setInstanceName(props.name);
+                }
+
+                if (props.id) {
+                    setBuildedPagesProps({ id: props.id, updateName });
+                }
+            });
+        } else {
+            // Clean on close
+            setBuildedPagesProps(undefined);
+        }
+    });
+
     return (
         <Window
-            visible={windowVisible}
-            setVisible={setWindowVisible}
+            visible={props.windowVisible}
+            setVisible={props.setWindowVisible}
             name={constructedWindowName()}
             sidebarChildren={
                 <Sidebar>
@@ -159,11 +195,17 @@ export const InstanceOptionsWindow = (props: InstanceOptionsProps) => {
             width={800}
             class={css.window}
         >
-            <ContentWrapper alignTop>
-                <VerticalStack>
-                    <Dynamic component={currentConfig().component} />
-                </VerticalStack>
-            </ContentWrapper>
+            <Show
+                when={buildedPagesProps()}
+            >
+                {(p) => (
+                    <ContentWrapper alignTop>
+                        <VerticalStack>
+                            <Dynamic component={currentConfig().component} id={p().id} updateName={p().updateName} />
+                        </VerticalStack>
+                    </ContentWrapper>
+                )}
+            </Show>
         </Window>
     )
 }

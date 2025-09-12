@@ -2,7 +2,8 @@
 import { z } from "zod";
 
 export const scanInfoSchema = z.object({
-  name: z.string(),
-  version: z.string(),
-  loader: z.string(),
+    id: z.number(),
+    name: z.string(),
+    version: z.string(),
+    loader: z.string(),
 });

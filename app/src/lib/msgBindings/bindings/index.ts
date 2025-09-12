@@ -23,6 +23,7 @@ export { taskSchema } from "./Task";
 export { taskStatusSchema } from "./TaskStatus";
 export { taskProgressSchema } from "./TaskProgress";
 export { exportTypesSchema } from "./instance/options/overview/ExportTypes";
+export { overviewFieldsSchema } from "./instance/options/overview/OverviewFields";
 
 export { baseMessageSchema } from "./BaseMessage";
 export { indexMessageSchema } from "./IndexMessage";

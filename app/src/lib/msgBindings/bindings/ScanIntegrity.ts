@@ -2,8 +2,5 @@
 import { z } from "zod";
 
 export const scanIntegritySchema = z.object({
-  manifest_path: z.string(),
-  manifest_exist: z.boolean(),
-  instance_path: z.string(),
-  instance_exist: z.boolean(),
+  instance_path: z.string().nullish(),
 });

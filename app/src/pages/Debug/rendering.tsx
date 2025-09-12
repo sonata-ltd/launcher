@@ -4,10 +4,7 @@ import { InstanceOptionsWindow } from "widgets/InstanceOptions/instanceOptionsWi
 const Page: Component = () => {
     return (
         <>
-            <InstanceOptionsWindow
-                name="Snipperly SMP"
-                id={10}
-            />
+            <p style={"text-align: center"}>Nothing to debug</p>
         </>
     )
 }

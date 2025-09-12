@@ -46,6 +46,7 @@ const Dropdown: ParentComponent<DropdownProps<any>> = (props) => {
     // Handle already selected value
     createEffect(() => {
         if (props.value) {
+            setSelected(props.value);
             setSelectedTextValue(props.value);
         }
     })
@@ -236,6 +237,7 @@ const DropdownItem = (props: DropdownItemProps<any>) => {
         }
     };
 
+    console.log(context.value() + " == " + props.value);
     const isSelected = createMemo(() => context.value() === props.value);
 
     return (

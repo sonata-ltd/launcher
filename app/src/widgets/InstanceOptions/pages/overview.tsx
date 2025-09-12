@@ -1,35 +1,68 @@
-import { createEffect, createSignal, For } from "solid-js";
+import { createComputed, createEffect, createRenderEffect, createResource, createSignal, For, onMount } from "solid-js";
 import Button from "uikit/components/Button";
 import { ButtonSizes } from "uikit/components/Button/button";
 import Dropdown from "uikit/components/Dropdown/dropdown";
 import { Input } from "uikit/components/Input";
 import { DescriptionText, OptionsSection } from "uikit/components/Section/section";
 import { httpCoreApi } from "lib/httpCoreApi";
-import { InstanceOptionPage } from "../instanceOptionsWindow";
+import { InstanceOptionPage, InstancePageProps } from "../instanceOptionsWindow";
 import { validateMessageType } from "lib/wsManagment";
-import { expectedType, tryValidateMessageAs } from "lib/msgBindings/parse";
+import { tryValidateMessageAs } from "lib/msgBindings/parse";
 import { optionUpdateMessageSchema } from "lib/msgBindings/bindings/instance/options/OptionUpdateMessage";
 import { instanceFieldsSchema } from "lib/msgBindings/bindings/instance/InstanceFields";
-import { exportTypesSchema } from "lib/msgBindings";
+import { exportTypesSchema, overviewFieldsSchema } from "lib/msgBindings";
 import { z } from "zod";
+import { useInstancesState } from "lib/instancesManagment";
+import { debugComputation } from "@solid-devtools/logger";
 
 type ExportType = z.infer<typeof exportTypesSchema>;
 
-export const OverviewPage = () => {
-    const [name, setName] = createSignal<string | undefined>();
-    const [changedName, setChangedName] = createSignal<string | undefined>();
+export const OverviewPage = (props: InstancePageProps) => {
+    const [name, setName] = createSignal<string>();
+
+    const [changedName, setChangedName] = createSignal<string>();
     const [nameApplyActive, setNameApplyActive] = createSignal(false);
-    const [tags, setTags] = createSignal<string | undefined>();
+
+    const [tags, setTags] = createSignal<string>();
 
     const exportTypesValues = exportTypesSchema.options;
     const [chosenExportType, setChosenExportType] = createSignal<ExportType>("Sonata");
+
+    const [data, { refetch }] = createResource(
+        () => props.id,
+        async (id) => {
+            const raw = await httpCoreApi().getInstanceOptionsData(id, InstanceOptionPage.Overview);
+            const parsed = tryValidateMessageAs("option", raw);
+            if (parsed.success) {
+                const safeOption = instanceFieldsSchema.parse(parsed.payload.option);
+                if ("Overview" in safeOption) {
+                    return safeOption.Overview;
+                }
+            } else {
+                console.error("Validation failed: ", parsed.error);
+            }
+        }
+    )
 
     const selectExportType = (type: ExportType) => {
         setChosenExportType(type);
     }
 
-    const changeName = () => {
-        console.log(changedName());
+    const changeName = async () => {
+        const newName = changedName();
+        if (!newName) return;
+
+        try {
+            await httpCoreApi().changeInstanceOptionsData(props.id, InstanceOptionPage.Overview, {
+                name: newName
+            } as z.infer<typeof overviewFieldsSchema>)
+
+            setNameApplyActive(false);
+            setName(newName);
+            props.updateName(newName);
+        } catch (err) {
+            console.trace(`Failed to update instance options data: ${err}`);
+        }
     }
 
     const checkChangedName = (ev: InputEvent) => {
@@ -43,27 +76,18 @@ export const OverviewPage = () => {
     }
 
     createEffect(() => {
-        const run = async () => {
-            const raw = await httpCoreApi().getInstanceOptionsData(10, InstanceOptionPage.Overview);
-            const parsed = tryValidateMessageAs(optionUpdateMessageSchema, raw, expectedType.option);
-            if (parsed.success) {
-                const safeOption = instanceFieldsSchema.parse(parsed.payload.option);
-                if ("Overview" in safeOption) {
-                    const data = safeOption.Overview;
-                    console.log(data);
+        const d = data();
+        if (!d) return;
 
-                    setName(data.name || undefined);
-                    setTags(data.tags || undefined);
+        try {
+            setName(d.name!);
+            setTags(d.tags!);
 
-                    if (data.export_type)
-                        setChosenExportType(data.export_type);
-                }
-            } else {
-                console.error("Validation failed: ", parsed.error);
-            }
+            if (d.export_type)
+                setChosenExportType(d.export_type);
+        } catch(err) {
+            console.log(err);
         }
-
-        run();
     })
 
     return (

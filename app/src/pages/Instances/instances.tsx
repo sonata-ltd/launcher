@@ -11,6 +11,8 @@ import { ProgressDisplay } from "uikit/widgets/ProgressDisplay/progressDisplay";
 import css from "./instances.module.less";
 import { createWindowModel } from "./windowModels/createWindow";
 import { imageBrowserModel } from "./windowModels/imageBrowserModel";
+import { InstanceOptionsWindow } from "widgets/InstanceOptions/instanceOptionsWindow";
+import { instanceOptionsModel } from "./windowModels/instanceOptionsModel";
 
 
 const Page: Component = () => {
@@ -18,6 +20,7 @@ const Page: Component = () => {
 
     const useCreateWindowModel = createWindowModel();
     const useImageBrowserModel = imageBrowserModel();
+    const useInstanceOptionsModel = instanceOptionsModel();
 
     return (
         <>
@@ -85,6 +88,13 @@ const Page: Component = () => {
                     <h1>section 3</h1>
                 </ContentStack>
             </Window>
+            <InstanceOptionsWindow
+                id={useInstanceOptionsModel.id()}
+                name={useInstanceOptionsModel.name()}
+                windowVisible={useInstanceOptionsModel.windowVisible}
+                setWindowVisible={useInstanceOptionsModel.setWindowVisible}
+                updateName={useInstanceOptionsModel.updateName}
+            />
             <div class={css.InstancesWrapper}>
                 <div class={css.PageContent}>
                     <Button secondary onClick={() => useCreateWindowModel.enableCreateWindow()}>Create</Button>
@@ -101,7 +111,11 @@ const Page: Component = () => {
                                 >Play</Button>
                                 <Button
                                     class={css["button"]}
-                                    onClick={() => alert("not impl")}
+                                    onClick={() => {
+                                        useInstanceOptionsModel.setId(instance.id);
+                                        useInstanceOptionsModel.setName(instance.name);
+                                        useInstanceOptionsModel.setWindowVisible(true);
+                                    }}
                                     secondary
                                 >Options</Button>
                             </Card>

@@ -3,8 +3,9 @@ import { VersionSchema } from "lib/dbInterface/manifests/types/prism";
 import { PrismVersionManifestSchema } from "lib/dbInterface/manifests/types/prism";
 import { useDBData } from "lib/dbInterface/provider";
 import { validateMessageType } from "lib/httpCoreApi";
-import { operationEventSchema, operationUpdateSchema } from "lib/msgBindings";
+import { operationEventSchema, operationUpdateSchema, scanDataSchema } from "lib/msgBindings";
 import { indexMessageSchema } from "lib/msgBindings";
+import { tryValidateMessageAs } from "lib/msgBindings/parse";
 import { useWebSocket } from "lib/wsManagment/manager";
 import { Accessor, createContext, createEffect, createSignal, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
@@ -17,9 +18,10 @@ type UnifiedVersionInfo = {
 }
 
 export type InstanceInfo = {
-    loader: string | undefined,
-    name: string | undefined,
-    version: string | undefined
+    id: number,
+    loader: string,
+    name: string,
+    version: string
 }
 
 type Store = [
@@ -29,6 +31,7 @@ type Store = [
         getVersionUrl: (versionId: string) => UnifiedVersionInfo["url"] | undefined,
         getManifestVersionsMap: () => Map<string, string>,
         updateInstancesList: () => void,
+        updateInstanceName: (id: number, name: string) => void,
     }
 ]
 
@@ -68,10 +71,6 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
     }
 
     const runInstance = (instance: InstanceInfo) => {
-        if (!instance.loader) return;
-        if (!instance.name) return;
-        if (!instance.version) return;
-
         const versionUrl = getVersionUrl(instance.version);
         if (!versionUrl) {
             console.error(`Version url with id ${instance.version} not found`);
@@ -107,7 +106,12 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
         setInstances((prev) => prev.filter((t) => t !== info));
     }
 
+    const updateInstanceName = (id: number, name: string) => {
+        setInstances((prev) => prev.map((inst) => inst.id === id ? { ...inst, name } : inst))
+    }
+
     const updateInstancesList = () => {
+        setInstances([]);
         wsListInstances.sendMessage("");
     }
 
@@ -121,56 +125,27 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
         if (messages().length > 0) {
             const rawMsg = messages()[messages().length - 1];
 
-            const msg = validateMessageType(indexMessageSchema, rawMsg);
-            if (!msg) return;
-
-            switch (msg.type) {
-                case "operation":
-                    handleOperationMessage(msg.payload.data);
-                    break;
-                default:
-                    console.log("unknown");
+            const res = tryValidateMessageAs("scan", rawMsg);
+            if (!res.success) {
+                console.warn("bad message:", res.error);
+            } else {
+                handleScanData(res.payload.data);
             }
         }
     })
 
-    const handleOperationMessage = (data: z.infer<typeof operationEventSchema>) => {
-        switch (true) {
-            case "start" in data:
-                break;
-            case "update" in data:
-                handleOperationUpdate(data.update);
-                break;
-            case "finish" in data:
-                break;
-        }
-    }
+    const handleScanData = (data: z.infer<typeof scanDataSchema>): boolean => {
+        if (!data.info) return false;
+        const info = data.info;
 
-    const handleOperationUpdate = (data: z.infer<typeof operationUpdateSchema>) => {
-        if (
-            data.type === "Determinable"
-            && data?.details?.target?.type === "Instance"
-        ) {
-            if (data.details.target.info !== null) {
-                const infoSlice = data.details.target.info;
+        addInstance({
+            id: info.id,
+            name: info.name,
+            loader: info.loader,
+            version: info.version
+        } as InstanceInfo)
 
-                if (
-                    infoSlice?.loader !== undefined
-                    && infoSlice.name !== undefined
-                    && infoSlice.version !== undefined
-                ) {
-                    const foundInstance: InstanceInfo = {
-                        loader: infoSlice?.loader,
-                        name: infoSlice.name,
-                        version: infoSlice.version
-                    }
-
-                    addInstance(foundInstance);
-                }
-            }
-        } else {
-            console.warn("Fields of valid WebSocket message is not found");
-        }
+        return true;
     }
 
     const store: Store = [
@@ -179,7 +154,8 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
             runInstance,
             getVersionUrl,
             getManifestVersionsMap,
-            updateInstancesList
+            updateInstancesList,
+            updateInstanceName
         }
     ]
 

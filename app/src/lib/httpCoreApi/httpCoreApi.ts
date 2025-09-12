@@ -5,7 +5,8 @@ import { InstanceOptionPage } from "widgets/InstanceOptions/instanceOptionsWindo
 
 type Store = {
     getVersionsManifest: (type: ManifestDBID) => Promise<JSON>,
-    getInstanceOptionsData: (id: number, page: InstanceOptionPage) => Promise<JSON>
+    getInstanceOptionsData: (id: number, page: InstanceOptionPage) => Promise<JSON>,
+    changeInstanceOptionsData: (id: number, page: InstanceOptionPage, options: unknown) => Promise<void>
 }
 
 export const httpCoreApi = (): Store => {
@@ -61,19 +62,38 @@ export const httpCoreApi = (): Store => {
 
                 return res.json();
             })
-            .then(json => {
-                res(json);
-            })
-            .catch(err => {
-                rej(err);
-            })
+                .then(json => {
+                    res(json);
+                })
+                .catch(err => {
+                    rej(err);
+                })
         })
+    }
+
+    const changeInstanceOptionsData = async (id: number, page: InstanceOptionPage, options: unknown): Promise<void> => {
+        const body = {
+            id,
+            page,
+            options
+        }
+
+        const res = await fetch(hostUrl + apiUrl.endpoints.changeInstanceOptionsPage, {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        })
+
+        if (!res.ok) {
+            throw new Error(`HTTP Error, status: ${res.status}`);
+        }
     }
 
 
     return {
         getVersionsManifest,
-        getInstanceOptionsData
+        getInstanceOptionsData,
+        changeInstanceOptionsData
     }
 }
 
