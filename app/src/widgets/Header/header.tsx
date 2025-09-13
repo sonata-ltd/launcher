@@ -11,6 +11,7 @@ import HeaderAnimation from './anims';
 import { useLocalRouter } from 'lib/localRouter';
 import { Tasks } from 'widgets/Tasklist';
 import { Spinner } from 'uikit/components/Spinner/spinner';
+import { useTranslatedMessages } from 'lib/localization/useMessages';
 
 export const tabStyles = {
     enter: {
@@ -28,6 +29,7 @@ const Header: Component = (props: any) => {
     const [currentRoute, { setRoute }] = useLocalRouter();
     const [headerTabs, { addHeaderTab, removeHeaderTab }] = useTabs();
     const [selectedTab, setSelectedTab] = createSignal(0);
+    const { get } = useTranslatedMessages();
 
 
     // Navigation Managment
@@ -101,7 +103,7 @@ const Header: Component = (props: any) => {
                             data-headertab-path={`header-tab:${tabInstance.path}`}
                         >
                             <Icon />
-                            <p>{tabInstance.name}</p>
+                            <p>{get(tabInstance.name.toLowerCase())}</p>
                         </button>
                     }
                     </For>

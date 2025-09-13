@@ -12,7 +12,6 @@ import { Task, TaskEntry } from "./tasks";
 import { animate } from "motion";
 import { debugOwnerComputations } from "@solid-devtools/logger";
 import { createSign } from "node:crypto";
-import { availableLanguageTags } from "lib/localization/paraglide/runtime";
 import { animationValues as av } from "uikit/components/definitions";
 
 
@@ -86,6 +85,8 @@ export const Tasklist = (props: TasklinkProps) => {
         return () => getTasklistScrollbarsInstance()?.destroy();
     });
 
+    const { get, capFirst } = useTranslatedMessages();
+
     return (
         <>
             <div
@@ -101,7 +102,7 @@ export const Tasklist = (props: TasklinkProps) => {
                         fallback={
                             <>
                                 <div class={css["no-tasks-container"]}>
-                                    <p>No active tasks</p>
+                                    <p>{capFirst("no_active_tasks")}</p>
                                 </div>
                             </>
                         }
@@ -237,7 +238,7 @@ const TaskCard = (props: TaskProps) => {
                 <p class={css["name"]}>
                     {
                         props.task.data.name != null
-                            ? props.task.data.name
+                            ? get(props.task.data.name)
                             : "Awaiting task initialization"
                     }
                 </p>

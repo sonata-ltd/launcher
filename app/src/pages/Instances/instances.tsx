@@ -13,6 +13,7 @@ import { createWindowModel } from "./windowModels/createWindow";
 import { imageBrowserModel } from "./windowModels/imageBrowserModel";
 import { InstanceOptionsWindow } from "widgets/InstanceOptions/instanceOptionsWindow";
 import { instanceOptionsModel } from "./windowModels/instanceOptionsModel";
+import { useTranslatedMessages } from "lib/localization/useMessages";
 
 
 const Page: Component = () => {
@@ -21,6 +22,8 @@ const Page: Component = () => {
     const useCreateWindowModel = createWindowModel();
     const useImageBrowserModel = imageBrowserModel();
     const useInstanceOptionsModel = instanceOptionsModel();
+
+    const { get } = useTranslatedMessages();
 
     return (
         <>
@@ -33,7 +36,7 @@ const Page: Component = () => {
                 visible={useCreateWindowModel.isWindowVisible}
                 setVisible={useCreateWindowModel.setWindowVisible}
                 controlsConfig={useCreateWindowModel.currentButtons}
-                name={"Create Instance"}
+                name={get("create_instance")}
             >
                 <ContentStack
                     index={useCreateWindowModel.windowIndex}
@@ -49,15 +52,15 @@ const Page: Component = () => {
                             </Card>
                             <VerticalStack expand>
                                 <Input
-                                    label="Name"
-                                    placeholder={useCreateWindowModel.getNamePlaceholder("Instance Name")}
+                                    label={get("name")}
+                                    placeholder={useCreateWindowModel.getNamePlaceholder(get("instance_name"))}
                                     onInput={(e) =>
                                         useCreateWindowModel.setStoreValueFromInput(e, "name")
                                     }
                                 />
                                 <Input
-                                    label="Tags"
-                                    placeholder="Instance Tags"
+                                    label={get("tags")}
+                                    placeholder={get("instance_tags")}
                                 />
                             </VerticalStack>
                         </FlexBox>
@@ -65,8 +68,8 @@ const Page: Component = () => {
                             <Dropdown
                                 value={useCreateWindowModel.selectedVersionStore.version}
                                 onChange={useCreateWindowModel.selectVersionId}
-                                label="Versions"
-                                placeholder="Instance Version"
+                                label={get("versions")}
+                                placeholder={get("instance_version")}
                                 typeable
                             >
                                 <For each={[...getManifestVersionsMap().keys()]}>
@@ -97,7 +100,7 @@ const Page: Component = () => {
             />
             <div class={css.InstancesWrapper}>
                 <div class={css.PageContent}>
-                    <Button secondary onClick={() => useCreateWindowModel.enableCreateWindow()}>Create</Button>
+                    <Button secondary onClick={() => useCreateWindowModel.enableCreateWindow()}>{get("create")}</Button>
                     <div class={css.InstancesContainer}>
                         <For each={instances()}>{(instance, i) =>
                             <Card

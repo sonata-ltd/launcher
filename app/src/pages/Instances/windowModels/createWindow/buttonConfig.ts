@@ -1,3 +1,4 @@
+import { useTranslatedMessages } from "lib/localization/useMessages";
 import { ButtonTypes } from "uikit/components/Button/button";
 
 
@@ -12,39 +13,41 @@ export const GetButtonsConfig = (props: GetButtonsConfigProps) => {
         changeWindowIndex
     } = props;
 
+    const { get } = useTranslatedMessages();
+
     return [
         [
             {
-                label: "Cancel",
+                label: get("cancel"),
                 action: () => closeWindow(),
                 type: ButtonTypes.secondary,
             },
             {
-                label: "Install",
+                label: get("install"),
                 action: () => changeWindowIndex(true),
                 type: ButtonTypes.primary,
             }
         ],
         [
             {
-                label: "Back",
+                label: get("back"),
                 action: () => changeWindowIndex(false),
                 type: ButtonTypes.secondary,
             },
             {
-                label: "Next",
+                label: get("next"),
                 action: () => changeWindowIndex(true),
                 type: ButtonTypes.primary,
             }
         ],
         [
             {
-                label: "Back",
+                label: get("back"),
                 action: () => changeWindowIndex(false),
                 type: ButtonTypes.secondary,
             },
             {
-                label: "Next",
+                label: get("next"),
                 action: () => closeWindow(),
                 type: ButtonTypes.primary,
             }

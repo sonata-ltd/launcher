@@ -17,6 +17,7 @@ import { WindowHolder } from 'components/WindowHolder/windowHolder';
 import { StartupScreen } from 'lib/startupScreen';
 import { useLocator } from '@solid-devtools/debugger/setup';
 import { ReconnectScreen } from 'widgets/OnScreen/Reconnect/reconnect';
+import { setLocale } from 'lib/localization/paraglide/runtime';
 
 const UIBuilder = () => {
     return (
@@ -38,6 +39,8 @@ interface AppServiceHandlerProps {
 
 const AppServicesHandler = (props: AppServiceHandlerProps) => {
     const wsData = useWebSockets();
+
+    setLocale("en");
 
     createEffect(() => {
         const run = async () => {

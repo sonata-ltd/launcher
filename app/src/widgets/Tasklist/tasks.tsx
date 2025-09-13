@@ -22,7 +22,7 @@ export interface TaskEntry {
 }
 
 export function Tasks(props: TasksProps) {
-    const ws = useWebSocket("debugTasks");
+    const ws = useWebSocket("tasksDispatcher");
     const { sendMessage, messages, state, getMessagesTracked } = ws;
 
     const [tasklistOpen, setTasklistOpen] = createSignal<boolean>(true);

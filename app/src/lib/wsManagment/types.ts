@@ -14,8 +14,8 @@ export const wsEndpoints = {
         url: "ws://127.0.0.1:8080/ws/instance/run",
         required: false
     },
-    debugTasks: {
+    tasksDispatcher: {
         url: "ws://127.0.0.1:8080/debug/tasks/notif",
-        required: false
+        required: true
     }
 }
