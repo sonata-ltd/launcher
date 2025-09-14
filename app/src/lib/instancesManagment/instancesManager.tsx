@@ -7,8 +7,9 @@ import { operationEventSchema, operationUpdateSchema, scanDataSchema } from "lib
 import { indexMessageSchema } from "lib/msgBindings";
 import { tryValidateMessageAs } from "lib/msgBindings/parse";
 import { useWebSocket } from "lib/wsManagment/manager";
-import { Accessor, createContext, createEffect, createSignal, useContext } from "solid-js";
+import { Accessor, createContext, createEffect, createMemo, createSignal, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
+import { createStore, produce } from "solid-js/store";
 import { z } from "zod";
 
 
@@ -26,7 +27,7 @@ export type InstanceInfo = {
 
 type Store = [
     {
-        instances: Accessor<InstanceInfo[]>,
+        getInstances: Accessor<InstanceInfo[]>,
         runInstance: (instance: InstanceInfo) => void,
         getVersionUrl: (versionId: string) => UnifiedVersionInfo["url"] | undefined,
         getManifestVersionsMap: () => Map<string, string>,
@@ -60,7 +61,7 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
     const wsListInstances = useWebSocket("listInstances", true);
     const wsRunInstance = useWebSocket("runInstance");
 
-    const [instances, setInstances] = createSignal<InstanceInfo[]>([]);
+    const [instances, setInstances] = createStore<Record<number, InstanceInfo>>({});
 
     const getManifestVersionsMap = () => {
         return manifestVersionsMap;
@@ -99,16 +100,20 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
     }
 
     const addInstance = (info: InstanceInfo) => {
-        setInstances((prev) => [...prev, info]);
+        setInstances(info.id, info);
     }
 
     const removeInstance = (info: InstanceInfo) => {
-        setInstances((prev) => prev.filter((t) => t !== info));
+        setInstances(produce(s => {
+            delete s[info.id]
+        }));
     }
 
     const updateInstanceName = (id: number, name: string) => {
-        setInstances((prev) => prev.map((inst) => inst.id === id ? { ...inst, name } : inst))
+        setInstances(id, "name", name);
     }
+
+    const getInstances = createMemo(() => Object.values(instances));
 
     const updateInstancesList = () => {
         setInstances([]);
@@ -150,7 +155,7 @@ export function InstancesStateProvider(props: { children: JSX.Element }) {
 
     const store: Store = [
         {
-            instances,
+            getInstances,
             runInstance,
             getVersionUrl,
             getManifestVersionsMap,

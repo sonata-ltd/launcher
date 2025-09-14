@@ -17,7 +17,7 @@ import { useTranslatedMessages } from "lib/localization/useMessages";
 
 
 const Page: Component = () => {
-    const [{ instances, runInstance, getManifestVersionsMap }] = useInstancesState();
+    const [{ getInstances, runInstance, getManifestVersionsMap }] = useInstancesState();
 
     const useCreateWindowModel = createWindowModel();
     const useImageBrowserModel = imageBrowserModel();
@@ -102,7 +102,7 @@ const Page: Component = () => {
                 <div class={css.PageContent}>
                     <Button secondary onClick={() => useCreateWindowModel.enableCreateWindow()}>{get("create")}</Button>
                     <div class={css.InstancesContainer}>
-                        <For each={instances()}>{(instance, i) =>
+                        <For each={getInstances()}>{(instance, i) =>
                             <Card
                                 name={instance.name}
                                 description={`${instance.loader} ${instance.version}`}
