@@ -22,6 +22,28 @@
 
             outline: none;
         }
+
+        &:focus {
+            box-shadow: none;
+        }
+    }
+}
+
+.destructive-defines(@hier) {
+    &.destructive {
+        background: @red-500;
+        box-shadow: none;
+        color: @white;
+
+        &:hover {
+            background: @red-600;
+        }
+
+        &:focus {
+            box-shadow: @focus-shadow-compensation, @focus-shadow_destructive;
+        }
+
+        .disabled-defines(@red-500, @white, true);
     }
 }
 
@@ -33,7 +55,6 @@
     outline: none;
 
     transform: scale(1);
-
     cursor: pointer;
 
     user-select: none;
@@ -73,6 +94,7 @@
 
         .av-text-sm-s;
 
+        .destructive-defines("pr");
         .disabled-defines(@btn-primary-bg, @btn-primary-color, true);
 
         &:hover {
