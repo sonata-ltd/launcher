@@ -1,0 +1,70 @@
+@import "@/uikit/styles/main";
+
+.wrapper {
+    background-color: @tabs-wrapper-background;
+    padding: @tabs-wrapper-padding;
+    border: @tabs-wrapper-border;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    height: 34px;
+    width: 100%;
+    position: relative;
+    box-shadow: @tabs-wrapper-box-shadow;
+    border-radius: @tabs-wrapper-radius;
+    box-sizing: border-box;
+
+    .tab {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+
+        width: 100%;
+        padding: @tabs-padding_active;
+        position: relative;
+
+        border: none;
+        background-color: transparent;
+
+        z-index: 2;
+
+
+        .separator {
+            height: 14px;
+            width: 1px;
+
+            background-color: @tabs-separator-background;
+            border-radius: @tabs-separator-radius;
+
+            position: absolute;
+            left: 0;
+
+            transition: ease-in-out 0.25s background-color;
+
+            &.active {
+                background: transparent;
+                box-shadow: none;
+                transition: ease-in-out 0.25s background-color;
+            }
+        }
+
+        p {
+            width: 100%;
+            margin: 0;
+            text-align: center;
+
+            .av-text-sm-r;
+            color: @text-primary;
+        }
+    }
+}
+
+.active {
+    background: @tabs-background_active;
+    box-shadow: @tabs-shadow_active;
+    border-radius: @tabs-radius_active;
+}
