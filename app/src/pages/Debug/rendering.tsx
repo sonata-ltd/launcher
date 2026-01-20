@@ -1,42 +1,13 @@
 import { Component, createEffect, createSignal } from "solid-js";
 import Button from "uikit/components/Button";
-import { Tab, Tabs } from "uikit/components/Tabs/tabs";
+import { Input } from "uikit/components/Input";
+import { Tabs } from "uikit/components/Tabs/tabs";
+import { ChevronIcon } from "uikit/icons/components/chevron";
 import { InstanceOptionsWindow } from "widgets/InstanceOptions/instanceOptionsWindow";
+import ddCss from "uikit/components/Dropdown/dropdown.module.less";
+import { TextArea } from "uikit/components/TextArea/textarea";
 
 const Page: Component = () => {
-  const tabs: Tab[] = [
-    {
-      name: "Tab Button",
-    },
-    {
-      name: "Tab Button",
-    },
-    {
-      name: "Tab Button",
-    },
-    {
-      name: "Tab Button",
-    },
-    {
-      name: "Tab Button",
-    },
-    {
-      name: "Tab Button",
-    },
-    {
-      name: "Tab Button",
-    },
-    {
-      name: "Tab Button",
-    },
-    {
-      name: "Tab Button",
-    },
-    {
-      name: "Tab Button",
-    },
-  ];
-
   return (
     <>
       {/*<p style={"text-align: center"}>Nothing to debug</p>*/}
@@ -49,9 +20,7 @@ const Page: Component = () => {
       <Button destructive primary />
       <Button destructive primary disabled />
 
-      <div style={"max-width: 100%; padding: 10px"}>
-        <Tabs tabs={tabs} />
-      </div>
+      <TextArea placeholder="java arguments" expand height={500} />
     </>
   );
 };

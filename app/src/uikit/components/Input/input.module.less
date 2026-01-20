@@ -1,5 +1,11 @@
 @import "@/uikit/styles/main";
 
+@tooltip-bg: #fdc3be;
+@tooltip-text: @text-primary;
+@tooltip-padding-vertical: 7px;
+@tooltip-padding-horizontal: 15px;
+@tooltip-radius: 10px;
+@tooltip-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 
 .wrapper {
     display: flex;
@@ -9,7 +15,6 @@
 
     .label {
         color: @input-label-color;
-
         .av-text-sm-m;
     }
 
@@ -17,44 +22,112 @@
         display: flex;
         flex-direction: column;
         gap: 6px;
-    }
 
-    .input {
-        height: 27px;
-        background: @input-bg;
-        border: none;
-        outline: @input-outline;
-        border-radius: @input-br;
-        padding: 2.5px 8px;
-        color: @input-text-color;
+        .hint {
+            color: @input-hint-color;
+            .av-text-sm-r;
 
-        .av-text-md-r;
-
-
-        &:focus {
-            box-shadow: @focus-shadow-compensation, @focus-shadow;
-        }
-
-        &::placeholder {
-            color: @input-text-placeholder-color;
-        }
-
-        &.error {
-            outline: @input-outline_error;
-
-            &:focus {
-                box-shadow: @input-shadow_error;
+            &.error {
+                color: @input-hint-color_error;
             }
         }
     }
 
-    .hint {
-        color: @input-hint-color;
+    .input-wrapper {
+        width: 100%;
+        height: 34px;
+        border-radius: @input-br;
+        box-sizing: border-box;
+        position: relative;
 
-        .av-text-sm-r;
+        input {
+            width: 100%;
+            height: 100%;
+            padding: 8px 7px;
+
+            background: @input-bg;
+            outline: @input-outline;
+
+            border: none;
+            box-sizing: border-box;
+            border-radius: @input-br;
+
+            color: @input-text-color;
+            .av-text-md-r;
+
+            &::placeholder {
+                color: @input-text-placeholder-color;
+            }
+
+            &.error {
+                outline: @input-outline_error;
+                &:focus {
+                    box-shadow: @input-shadow_error;
+                }
+            }
+        }
 
         &.error {
-            color: @input-hint-color_error;
+            outline: @input-outline_error;
+            &:focus {
+                box-shadow: @input-shadow_error;
+            }
         }
+
+        &:has(input:focus) {
+            box-shadow: @focus-shadow-compensation, @focus-shadow;
+        }
+
+        .sideicon {
+            height: 100%;
+            position: absolute;
+            top: 0;
+            right: 5px;
+        }
+
+        .tooltip {
+            position: absolute;
+            bottom: calc(100% + 13px);
+            right: 0;
+            transform-origin: bottom right;
+            background-color: @tooltip-bg;
+            padding: @tooltip-padding-vertical @tooltip-padding-horizontal;
+            border-radius: @tooltip-radius;
+            white-space: nowrap;
+            z-index: 1000;
+            box-shadow: @tooltip-shadow;
+            animation: tooltipFade 160ms ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .tooltip-text {
+                margin: 0;
+                color: @tooltip-text;
+                line-height: 1;
+                .av-text-md-m;
+            }
+        }
+
+        .tooltip-arrow {
+            position: absolute;
+            top: 100%;
+            right: -2px;
+            width: 44px;
+            height: 9px;
+            pointer-events: none;
+        }
+
+    }
+}
+
+@keyframes tooltipFade {
+    from {
+        opacity: 0;
+        transform: translateY(6px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }

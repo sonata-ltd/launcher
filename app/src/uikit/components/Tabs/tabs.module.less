@@ -68,3 +68,22 @@
     box-shadow: @tabs-shadow_active;
     border-radius: @tabs-radius_active;
 }
+
+.content {
+  margin-top: 16px;
+}
+
+.tab-content {
+  animation: fadeIn 0.125s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    /* transform: translateY(4px); */
+  }
+  to {
+    opacity: 1;
+    /* transform: translateY(0); */
+  }
+}

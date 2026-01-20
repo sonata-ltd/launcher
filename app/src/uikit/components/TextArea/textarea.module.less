@@ -1,0 +1,27 @@
+@import "@/uikit/styles/main";
+
+.textarea {
+    box-sizing: border-box;
+    padding: 8px 7px;
+    background: @input-bg;
+    border-radius: @input-br;
+    outline: @input-outline;
+    border: none;
+
+    .av-text-md-r;
+
+    &:focus {
+        box-shadow: @focus-shadow-compensation, @focus-shadow;
+    }
+
+    &::placeholder {
+        color: @input-text-placeholder-color;
+    }
+
+    &.error {
+        outline: @input-outline_error;
+        &:focus {
+            box-shadow: @input-shadow_error;
+        }
+    }
+}

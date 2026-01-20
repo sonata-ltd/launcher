@@ -1,9 +1,11 @@
 import {
+  children,
   Component,
   createEffect,
   createMemo,
   createSignal,
   For,
+  JSX,
   onCleanup,
   onMount,
   Show,
@@ -12,16 +14,13 @@ import css from "./tabs.module.less";
 import { animate } from "motion";
 import { animationValues as av } from "../definitions";
 
-export interface TabProps {
-  name: string;
-  separator?: () => boolean;
-  active?: () => boolean;
-  onClick?: () => void;
-  index?: number;
+export interface TabsProps {
+  tabs: TabItem[];
 }
 
-export interface TabsProps {
-  tabs: Array<TabProps>;
+export interface TabItem {
+  name: string;
+  content: JSX.Element;
 }
 
 export const Tabs: Component<TabsProps> = (props: TabsProps) => {
@@ -89,10 +88,10 @@ export const Tabs: Component<TabsProps> = (props: TabsProps) => {
     <>
       <div ref={tabsWrapper} class={css.wrapper}>
         <For each={props.tabs}>
-          {(item, i) => {
+          {(tab, i) => {
             return (
               <SingleTab
-                name={item.name}
+                name={tab.name}
                 separator={() =>
                   i() !== 0 &&
                   selectedTab() !== i() &&
@@ -111,11 +110,29 @@ export const Tabs: Component<TabsProps> = (props: TabsProps) => {
           style={"position: absolute"}
         ></div>
       </div>
+
+      <div class={css.content}>
+        <For each={props.tabs}>
+          {(tab, i) => {
+            return (
+              <Show when={i() === selectedTab()}>
+                <div class={css["tab-content"]}>{tab.content}</div>
+              </Show>
+            );
+          }}
+        </For>
+      </div>
     </>
   );
 };
 
-const SingleTab: Component<TabProps> = (props: TabProps) => {
+const SingleTab: Component<{
+  name: string;
+  separator: () => boolean;
+  active: () => boolean;
+  onClick: () => void;
+  index: number;
+}> = (props) => {
   return (
     <button onClick={props.onClick} class={css.tab}>
       <div
