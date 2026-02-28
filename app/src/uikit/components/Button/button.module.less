@@ -2,10 +2,12 @@
 @import "@/styles/functions";
 
 
+// Build disabled variations for specific style
 .disabled-defines(@initial-bg, @initial-color, @enable-bg-shade) {
     &.disabled {
         outline: none;
         cursor: default;
+        box-shadow: none;
 
         .shade-color(@initial-color, @disabled_shade);
 
@@ -21,6 +23,7 @@
             .shade-color(@initial-color, @disabled_shade);
 
             outline: none;
+            box-shadow: none;
         }
 
         &:focus {
@@ -29,6 +32,7 @@
     }
 }
 
+// Build destructive variations for specific style
 .destructive-defines(@hier) {
     &.destructive {
         background: @red-500;
@@ -53,6 +57,7 @@
     border-radius: @btn-br;
     border: none;
     outline: none;
+    align-items: center;
 
     transform: scale(1);
     cursor: pointer;
@@ -64,12 +69,24 @@
 
     &.sm {
         &.icon {
-            padding: 7px;
+            padding: 7px 10px;
         }
     }
 
     &.md {
         padding: 9px 10px;
+
+        &.icon {
+            padding: 9px 10px;
+        }
+    }
+
+    &.lg {
+    	padding: 11px 19px;
+
+	     &.icon {
+	         padding: 11px;
+	     }
     }
 
     &.icon {
@@ -94,7 +111,6 @@
 
         .av-text-sm-s;
 
-        .destructive-defines("pr");
         .disabled-defines(@btn-primary-bg, @btn-primary-color, true);
 
         &:hover {
@@ -130,6 +146,24 @@
             background: @btn-tertiary-bg_hover;
             color: @btn-tertiary-color_hover;
             outline: @btn-tertiary-stroke_hover;
+        }
+    }
+
+    &.destructive {
+	    background: @red-500;
+	    box-shadow: none;
+	    color: @white;
+
+        .av-text-sm-s;
+
+        .disabled-defines(@btn-primary-bg, @btn-primary-color, true);
+
+        &:hover {
+            background: @red-600;
+        }
+
+        &:focus {
+            box-shadow: @focus-shadow-compensation, @focus-shadow_destructive;
         }
     }
 

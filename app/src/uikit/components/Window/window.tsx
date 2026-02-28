@@ -1,7 +1,18 @@
-import { Accessor, children, Component, createEffect, createMemo, createSignal, For, onMount, Setter, Show } from "solid-js";
+import {
+	Accessor,
+	children,
+	Component,
+	createEffect,
+	createMemo,
+	createSignal,
+	For,
+	onMount,
+	Setter,
+	Show,
+} from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { animate, spring } from "motion";
-import { animationValues as av } from '../definitions';
+import { animationValues as av } from "../definitions";
 
 import css from "./window.module.less";
 import Button from "../Button";
@@ -9,258 +20,265 @@ import { ButtonTypes } from "../Button/button";
 import { useLogger } from "lib/logger";
 import { Portal } from "solid-js/web";
 import { Separator } from "../Separator/separator";
+import { ButtonConfig, WindowFrameProps } from "./types";
 
+// export type ButtonConfig = {
+// 	label: string;
+// 	action: () => void;
+// 	type?: ButtonTypes;
+// };
 
-export type ButtonConfig = {
-    label: string,
-    action: () => void,
-    type?: ButtonTypes
-}
+// type WindowProps = {
+// 	visible: Accessor<boolean>;
+// 	setVisible: Setter<boolean>;
+// 	controlsConfig?: Accessor<ButtonConfig[]>;
+// 	name?: string | Accessor<string>;
+// 	width?: number;
+// 	children?: JSX.Element;
+// 	detached?: boolean;
+// 	sidebarChildren?: JSX.Element | JSX.Element[];
+// 	headerButton?: JSX.Element;
+// 	class?: string;
+// };
 
-type WindowProps = {
-    visible: Accessor<boolean>,
-    setVisible: Setter<boolean>,
-    controlsConfig?: Accessor<ButtonConfig[]>,
-    name?: string | Accessor<string>,
-    width?: number,
-    children?: JSX.Element,
-    detached?: boolean,
-    sidebarChildren?: JSX.Element | JSX.Element[],
-    headerButton?: JSX.Element,
-    class?: string,
-}
+// export const Window: Component<WindowProps> = (props) => {
+// 	let localDetached = props.detached;
+// 	let windowContentWrapper: HTMLDivElement | undefined = undefined;
+// 	let windowHolder = document.getElementById("window-holder");
 
-export const Window: Component<WindowProps> = (props) => {
-    let localDetached = props.detached;
-    let windowContentWrapper: HTMLDivElement | undefined = undefined;
-    let windowHolder = document.getElementById("window-holder");
+// 	createEffect(() => {
+// 		if (windowContentWrapper && windowHolder) {
+// 			const el = windowContentWrapper as HTMLDivElement;
+// 			el.setAttribute("data-window-enabled", props.visible().toString());
+// 			el.id = "window-wrapper_" + crypto.randomUUID();
+// 		}
+// 	});
 
-    createEffect(() => {
-        if (windowContentWrapper && windowHolder) {
-            const el = windowContentWrapper as HTMLDivElement;
-            el.setAttribute("data-window-enabled", props.visible().toString());
-            el.id = "window-wrapper_" + crypto.randomUUID();
-        }
-    })
+// 	onMount(() => {
+// 		if (!windowHolder) {
+// 			localDetached = false;
+// 			console.warn("Window Holder not found");
+// 		}
+// 	});
 
-    onMount(() => {
-        if (!windowHolder) {
-            localDetached = false;
-            console.warn("Window Holder not found");
-        }
-    })
+// 	return (
+// 		<>
+// 			{localDetached && windowHolder ? (
+// 				<Portal mount={windowHolder} ref={windowContentWrapper}>
+// 					<WindowBase {...props} />
+// 				</Portal>
+// 			) : (
+// 				<WindowBase {...props} />
+// 			)}
+// 		</>
+// 	);
+// };
 
+export const WindowFrame: Component<WindowFrameProps> = (props) => {
+	const resolvedChildrens = children(() => props.children);
+	const resolvedSidebarChildrens = children(() => props.sidebarChildren);
+	const hasSidebar = () => !!resolvedSidebarChildrens();
 
-    return <>
-        {localDetached ? (
-            <Portal
-                mount={windowHolder}
-                ref={windowContentWrapper}
-            >
-                <WindowBase
-                    {...props}
-                />
-            </Portal>
-        ) : (
-            <WindowBase {...props} />
-        )}
-    </>
-}
+	return (
+		<>
+			<div
+				class={css["window"]}
+				classList={{
+					[props.class!]: !!props.class,
+				}}
+				style={`${
+					props.width ? `max-width: ${props.width}px` : undefined
+				}`}
+			>
+				{/* Header - outside sidebar layout */}
+				<Show when={!hasSidebar()}>
+					<WindowHeader
+						name={props.name}
+						onMinimize={props.onMinimize}
+						onClose={props.onClose}
+					/>
+				</Show>
 
-const WindowBase: Component<WindowProps> = (props) => {
-    const [{ log }] = useLogger();
-    const resolvedChildres = children(() => props.children);
-    const resolvedSidebarChildrens = children(() => props.sidebarChildren);
+				{/* Main layout */}
+				<div
+					classList={{
+						[css["horizontal-container"]]: hasSidebar(),
+					}}
+				>
+					{/* Sidebar */}
+					<Show when={hasSidebar()}>
+						<>
+							{resolvedSidebarChildrens()}
+							<Separator vertical />
+						</>
+					</Show>
 
-    const [loadInternalContent, setLoadInternalContent] = createSignal(props.visible());
+					{/* Content wrapper */}
+					<div class={css["wrapper"]}>
+						{/* Header - inside sidebar layout */}
+						<Show when={hasSidebar()}>
+							<WindowHeader
+								name={props.name}
+								onMinimize={props.onMinimize}
+								onClose={props.onClose}
+							/>
+						</Show>
 
-    // Prevent window animation instantly after component render
-    let enableAnims = false;
-    let window: HTMLDivElement | undefined = undefined;
+						{/* Main content */}
+						<div class={css["main-container"]}>
+							<Show
+								when={resolvedChildrens()}
+								fallback={
+									<div class={css["empty-message"]}>
+										<p>Empty content...</p>
+									</div>
+								}
+							>
+								{resolvedChildrens()}
+							</Show>
+						</div>
 
-    createEffect(() => {
-        if (window) {
+						{/* Footer controls - inside sidebar layout */}
+						<Show when={props.controlsConfig && hasSidebar()}>
+							<div class={css["bottom-container"]}>
+								<AttachedWindowControls
+									controlsConfig={props.controlsConfig!}
+								/>
+							</div>
+						</Show>
+					</div>
+				</div>
 
-            // Animate window opening
-            if (props.visible()) {
-
-                (window as HTMLDivElement).style.display = "flex";
-                (window as HTMLDivElement).style.flexDirection = "column";
-                setLoadInternalContent(true);
-
-                animate(
-                    window,
-                    av.elementsPoints.window.open,
-                    av.defaultAnimationType
-                )
-
-                enableAnims = true;
-
-                // Animate window closing
-            } else if (props.visible() === false && enableAnims !== false) {
-
-                animate(
-                    window,
-                    av.elementsPoints.window.close,
-                    av.defaultAnimationType
-                ).then(() => {
-                    (window as HTMLDivElement).style.display = "none";
-                })
-            }
-        } else {
-            //logw("")
-            console.warn("Not found");
-        }
-    })
-
-    const changeVisibility = () => {
-        props.setVisible(false);
-    }
-
-    const windowControls = (): Element => {
-        return (
-            <div class={css["window-controls"]}>
-                <For each={props.controlsConfig?.()}>{(button) =>
-                    <Button
-                        type={button.type}
-                        onClick={button.action}
-                    >
-                        {button.label}
-                    </Button>
-                }</For>
-            </div>
-        ) as Element;
-    }
-
-
-    return (
-        <>
-            <div
-                class={css["window"]}
-                classList={{
-                    [props.class]: props.class
-                }}
-                style={`${props.width ? `max-width: ${props.width}px` : ``}`}
-                ref={window}
-            >
-                <Show
-                    when={!resolvedSidebarChildrens()}
-                >
-                    <WindowHeader name={props.name} changeVisibility={changeVisibility} />
-                </Show>
-                <div
-                    classList={{
-                        [css["horizontal-container"]]: resolvedSidebarChildrens()
-                    }}
-                >
-                    <Show
-                        when={resolvedSidebarChildrens()}
-                    >
-                        <>
-                            {loadInternalContent() && (() => {
-                                return resolvedSidebarChildrens();
-                            })()}
-                            <Separator vertical />
-                        </>
-                    </Show>
-                    <div class={css["wrapper"]}>
-                        <Show
-                            when={resolvedSidebarChildrens()}
-                        >
-                            <WindowHeader name={props.name} changeVisibility={changeVisibility} />
-                        </Show>
-                        <div
-                            class={css["main-container"]}
-                        >
-                            <Show
-                                when={resolvedChildres()}
-                                fallback={
-                                    <div class={css["empty-message"]}>
-                                        <p>Empty content...</p>
-                                    </div>
-                                }
-                            >
-                                {loadInternalContent() && (() => {
-                                    return resolvedChildres();
-                                })()}
-                            </Show>
-                        </div>
-                        <div class={css["bottom-container"]}>
-                            <Show when={props.controlsConfig && resolvedSidebarChildrens()}>
-                                {windowControls()}
-                            </Show>
-                        </div>
-                    </div>
-                </div>
-                <Show
-                    when={!resolvedSidebarChildrens()}
-                >
-                    <Show when={props.controlsConfig}>
-                        {windowControls()}
-                    </Show>
-                </Show>
-            </div>
-        </>
-    )
-}
-
+				{/* Footer controls - outside sidebar layout */}
+				<Show when={props.controlsConfig && !hasSidebar()}>
+					<AttachedWindowControls
+						controlsConfig={props.controlsConfig!}
+					/>
+				</Show>
+			</div>
+		</>
+	);
+};
 
 interface WindowHeaderProps {
-    name?: string | Accessor<string>,
-    changeVisibility: () => void
+	name?: string;
+	onClose?: () => void;
+	onMinimize?: () => void;
 }
 
 const WindowHeader: Component<WindowHeaderProps> = (props) => {
-    return (
-        <>
-            <div class={css["header"]}>
-                <div class={css["name"]}>
-                    <p>{props.name || props.name?.() || "Window"}</p>
-                </div>
-                <div class={css["controls-container"]}>
-                    <div class={css["minimize"]}></div>
-                    <div
-                        class={css["close"]}
-                        onClick={() => props.changeVisibility()}
-                    ></div>
-                </div>
-            </div>
-        </>
-    )
+	return (
+		<>
+			<div class={css["header"]}>
+				<div class={css["name"]}>
+					<p>{props.name || "Window"}</p>
+				</div>
+				<div class={css["controls-container"]}>
+					<Show when={props.onMinimize}>
+						<div
+							class={css["minimize"]}
+							onClick={props.onMinimize}
+						></div>
+					</Show>
+					<Show when={props.onClose}>
+						<div class={css["close"]} onClick={props.onClose}></div>
+					</Show>
+				</div>
+			</div>
+		</>
+	);
+};
+
+interface AttachedWindowControlsProps {
+	controlsConfig: ButtonConfig | ButtonConfig[];
 }
 
+const AttachedWindowControls: Component<AttachedWindowControlsProps> = (
+	props,
+) => {
+	const controlsConfig = (): ButtonConfig[] => {
+		return Array.isArray(props.controlsConfig)
+			? props.controlsConfig
+			: [props.controlsConfig];
+	};
 
-type WindowControlsType = {
-    children: JSX.Element
+	const isPrimitive = (v: unknown): v is string | number =>
+		typeof v === "string" || typeof v === "number";
+
+	const isVNode = (v: unknown): v is JSX.Element =>
+		typeof v === "object" && v !== null && ("type" in v || "props" in v);
+
+	const isButtonVNode = (v: unknown): boolean => {
+		return isVNode(v) && (v as any).type === Button;
+	};
+
+	const buildConfigButton = (cfg: ButtonConfig) => {
+		const content = cfg.content;
+
+		if (typeof content === "function") {
+			const built = (content as any)({
+				type: cfg.type,
+				onClick: cfg.action,
+			});
+			return built;
+		}
+
+		if (isButtonVNode(content)) {
+			return content as JSX.Element;
+		}
+
+		if (isPrimitive(content)) {
+			return (
+				<Button type={cfg.type} onClick={cfg.action}>
+					<span>{content}</span>
+				</Button>
+			);
+		} else {
+			return content as JSX.Element;
+		}
+	};
+
+	return (
+		<div class={css["window-controls"]}>
+			<For each={controlsConfig()}>
+				{(button) => {
+					const el = buildConfigButton(button);
+
+					if (button.last) {
+						return <div style={{ width: "100%" }}>{el}</div>;
+					}
+
+					return el;
+				}}
+			</For>
+		</div>
+	);
+};
+
+export interface WindowControlsProps {
+	children: JSX.Element;
 }
 
-export const WindowControls: Component<WindowControlsType> = (props) => {
-    return (
-        <div class={css["window-controls"]}>
-            {props.children}
-        </div>
-    )
-}
-
+export const WindowControls: Component<WindowControlsProps> = (props) => {
+	return <div class={css["window-controls"]}>{props.children}</div>;
+};
 
 type ContentWrapperProps = {
-    children: JSX.Element,
-    alignTop?: boolean,
-}
+	children: JSX.Element;
+	alignTop?: boolean;
+};
 
 export const ContentWrapper = (props: ContentWrapperProps) => {
-    return (
-        <>
-            <div
-                class={css["window-content"]}
-                classList={{
-                    [css["align-top"]]: props.alignTop
-                }}
-            >
-                <div class={css["content"]}>
-                    {props.children}
-                </div>
-            </div>
-        </>
-    )
-}
+	return (
+		<>
+			<div
+				class={css["window-content"]}
+				classList={{
+					[css["align-top"]]: props.alignTop,
+				}}
+			>
+				<div class={css["content"]}>{props.children}</div>
+			</div>
+		</>
+	);
+};

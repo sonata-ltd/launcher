@@ -13,7 +13,7 @@
     max-height: 80vh;
     min-height: 100px;
 
-    position: fixed;
+    /* position: fixed; */
     left: 0;
     right: 0;
     bottom: 0;
@@ -27,9 +27,9 @@
     overflow: auto;
     background: white;
 
-    opacity: 0;
+    /* opacity: 0; */
     z-index: 3;
-    display: none;
+    /* display: none; */
 
     .calc-outer-radius(@btn-br, @content-padding);
 
@@ -124,6 +124,10 @@
             .flexbox {
                 display: flex;
                 gap: 15px;
+
+                &.fill {
+	               	width: 100%;
+                }
 
                 &.expand > * {
                     width: 100%;

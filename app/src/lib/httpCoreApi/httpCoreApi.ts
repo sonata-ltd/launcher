@@ -1,107 +1,222 @@
 import { z } from "zod";
-import { apiUrl } from "./constants"
+import { apiUrl } from "./constants";
 import { ManifestDBID } from "lib/dbInterface/handler";
-import { InstanceOptionPage } from "widgets/InstanceOptions/instanceOptionsWindow";
+import { InstanceOptionPage } from "windows/InstanceOptions/instanceOptionsWindow";
+import { createHttpClient, type KeyMatcher } from "./core/httpClient";
 
 type Store = {
-    getVersionsManifest: (type: ManifestDBID) => Promise<JSON>,
-    getInstanceOptionsData: (id: number, page: InstanceOptionPage) => Promise<JSON>,
-    changeInstanceOptionsData: (id: number, page: InstanceOptionPage, options: unknown) => Promise<void>
-}
+	getVersionsManifest: <T = unknown>(
+		type: ManifestDBID,
+		control?: RequestControl,
+	) => Promise<T>;
+	getInstanceOptionsData: <T = unknown>(
+		id: number,
+		page: InstanceOptionPage,
+		control?: RequestControl,
+	) => Promise<T>;
+	changeInstanceOptionsData: (
+		id: number,
+		page: InstanceOptionPage,
+		options: unknown,
+		control?: AbortControl,
+	) => Promise<void>;
+	inspectJavaRuntime: <T = unknown>(
+		path: string,
+		control?: InspectJavaRuntimeControl,
+	) => Promise<T>;
+	addJavaRuntime: <T = unknown>(runtimeData: string) => Promise<void>;
+	invalidateCache: (matcher?: KeyMatcher) => void;
+	abortRequest: (key: string) => void;
+};
 
-export const httpCoreApi = (): Store => {
-    const hostUrl = "http://127.0.0.1:8080";
+type RequestControl = {
+	signal?: AbortSignal;
+	forceRefresh?: boolean;
+};
 
-    const getVersionsManifest = (type: ManifestDBID): Promise<JSON> => {
-        let url;
-        let fetch_options;
-        if (type !== ManifestDBID.unifiedVersionManifest) {
-            url = hostUrl + apiUrl.endpoints.getVersionsManifest;
-            fetch_options = {
-                method: 'POST',
-                body: JSON.stringify({
-                    manifest_type: type
-                })
-            }
-        } else {
-            url = hostUrl + apiUrl.endpoints.getVersionsUnified;
-            fetch_options = {
-                method: 'GET',
-            }
-        }
+type AbortControl = {
+	signal?: AbortSignal;
+};
 
-        return new Promise((res, rej) => {
-            fetch(url, fetch_options)
-                .then(res => {
-                    if (!res.ok) {
-                        throw new Error(`HTTP Error, status: ${res.status}`);
-                    }
+type InspectJavaRuntimeControl = {
+	signal?: AbortSignal;
+	cancelPrevious?: boolean;
+};
 
-                    return res.json();
-                })
-                .then(json => {
-                    res(json);
-                })
-                .catch(err => {
-                    rej(err);
-                })
-        })
-    }
+const MANIFEST_CACHE_TTL_MS = 5 * 60 * 1000;
+const INSTANCE_OPTIONS_CACHE_TTL_MS = 30 * 1000;
+const INSPECT_JAVA_RUNTIME_KEY = "inspect-java-runtime";
 
-    const getInstanceOptionsData = (id: number, page: InstanceOptionPage): Promise<JSON> => {
-        let url = hostUrl + `/instance/${id}/${page}`;
-        console.log(url);
+const getManifestKey = (id: ManifestDBID): string => `manifest:${id}`;
+const getInstanceOptionsKey = (id: number, page: InstanceOptionPage): string =>
+	`instance-options:${id}:${page}`;
 
-        return new Promise((res, rej) => {
-            fetch(url, {
-                method: 'GET'
-            }).then(res => {
-                if (!res.ok) {
-                    throw new Error(`HTTP Error, status: ${res.status}`);
-                }
+const client = createHttpClient({
+	baseUrl: apiUrl.host,
+	cacheTtlMs: 60_000,
+	retry: {
+		retries: 2,
+		baseDelayMs: 250,
+		maxDelayMs: 2_000,
+	},
+});
 
-                return res.json();
-            })
-                .then(json => {
-                    res(json);
-                })
-                .catch(err => {
-                    rej(err);
-                })
-        })
-    }
+export const fetchJsonHelper = async <T = unknown>(
+	url: string,
+	options?: RequestInit,
+): Promise<T> => {
+	const res = await fetch(url, options);
 
-    const changeInstanceOptionsData = async (id: number, page: InstanceOptionPage, options: unknown): Promise<void> => {
-        const body = {
-            id,
-            page,
-            options
-        }
+	if (!res.ok) {
+		const text = await res.text().catch(() => "<no body>");
+		throw new Error(`HTTP Error ${res.status}: ${text}`);
+	}
 
-        const res = await fetch(hostUrl + apiUrl.endpoints.changeInstanceOptionsPage, {
-            method: 'POST',
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-        })
+	const text = await res.text();
+	return text ? (JSON.parse(text) as T) : (undefined as T);
+};
 
-        if (!res.ok) {
-            throw new Error(`HTTP Error, status: ${res.status}`);
-        }
-    }
+const store: Store = {
+	getVersionsManifest: async <T = unknown>(
+		type: ManifestDBID,
+		control?: RequestControl,
+	): Promise<T> => {
+		const requestKey = getManifestKey(type);
+		const cacheMode = control?.forceRefresh ? "refresh" : "default";
 
+		if (type !== ManifestDBID.unifiedVersionManifest) {
+			return client.request<T, { manifest_type: ManifestDBID }>({
+				path: apiUrl.endpoints.getVersionsManifest,
+				method: "POST",
+				body: {
+					manifest_type: type,
+				},
+				requestKey,
+				cache: {
+					key: requestKey,
+					mode: cacheMode,
+					ttlMs: MANIFEST_CACHE_TTL_MS,
+				},
+				dedupe: true,
+				signal: control?.signal,
+			});
+		}
 
-    return {
-        getVersionsManifest,
-        getInstanceOptionsData,
-        changeInstanceOptionsData
-    }
-}
+		return client.request<T>({
+			path: apiUrl.endpoints.getVersionsUnified,
+			method: "GET",
+			requestKey,
+			cache: {
+				key: requestKey,
+				mode: cacheMode,
+				ttlMs: MANIFEST_CACHE_TTL_MS,
+			},
+			dedupe: true,
+			signal: control?.signal,
+		});
+	},
 
+	getInstanceOptionsData: async <T = unknown>(
+		id: number,
+		page: InstanceOptionPage,
+		control?: RequestControl,
+	): Promise<T> => {
+		const requestKey = getInstanceOptionsKey(id, page);
+		const cacheMode = control?.forceRefresh ? "refresh" : "default";
 
-export const validateMessageType = <T extends z.ZodTypeAny>(schema: T, rawMsg: any): z.infer<T> | false => {
-    try {
-        return schema.parse(rawMsg) as z.infer<T>;
-    } catch (e) {
-        return false;
-    }
-}
+		return client.request<T>({
+			path: `/instance/${id}/${page}`,
+			method: "GET",
+			requestKey,
+			cache: {
+				key: requestKey,
+				mode: cacheMode,
+				ttlMs: INSTANCE_OPTIONS_CACHE_TTL_MS,
+			},
+			dedupe: true,
+			signal: control?.signal,
+		});
+	},
+
+	changeInstanceOptionsData: async (
+		id: number,
+		page: InstanceOptionPage,
+		options: unknown,
+		control?: AbortControl,
+	): Promise<void> => {
+		const body = {
+			id,
+			page,
+			options,
+		};
+
+		await client.request<void, typeof body>({
+			path: apiUrl.endpoints.changeInstanceOptionsPage,
+			method: "POST",
+			body,
+			responseType: "void",
+			retry: false,
+			signal: control?.signal,
+			requestKey: `change-instance-options:${id}:${page}`,
+			cache: {
+				mode: "no-store",
+			},
+		});
+
+		client.invalidate((cacheKey) =>
+			cacheKey.startsWith(`instance-options:${id}:`),
+		);
+	},
+
+	inspectJavaRuntime: async <T = unknown>(
+		path: string,
+		control?: InspectJavaRuntimeControl,
+	): Promise<T> => {
+		return client.request<T, string>({
+			path: apiUrl.endpoints.inpectJavaRunime,
+			method: "POST",
+			body: path,
+			headers: {
+				"Content-Type": "text/plain",
+			},
+			serializeBody: (value) => value,
+			retry: false,
+			cache: {
+				mode: "no-store",
+			},
+			dedupe: false,
+			requestKey: INSPECT_JAVA_RUNTIME_KEY,
+			cancelPrevious: control?.cancelPrevious ?? true,
+			signal: control?.signal,
+		});
+	},
+
+	addJavaRuntime: async <T = unknown>(runtimeData: string): Promise<T> => {
+		return client.request<T, string>({
+			path: apiUrl.endpoints.addJavaRuntime,
+			method: "GET",
+			body: runtimeData,
+		});
+	},
+
+	invalidateCache: (matcher?: KeyMatcher) => {
+		client.invalidate(matcher);
+	},
+
+	abortRequest: (key: string) => {
+		client.abortRequest(key);
+	},
+};
+
+export const httpCoreApi = (): Store => store;
+
+export const validateMessageType = <T extends z.ZodTypeAny>(
+	schema: T,
+	rawMsg: unknown,
+): z.infer<T> | false => {
+	try {
+		return schema.parse(rawMsg) as z.infer<T>;
+	} catch (_err) {
+		return false;
+	}
+};

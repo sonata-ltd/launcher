@@ -1,90 +1,105 @@
 import { useLogger } from "lib/logger";
-import { Accessor, createContext, createEffect, createSignal, JSX, Owner, ParentProps, useContext } from "solid-js";
-
+import {
+	Accessor,
+	createContext,
+	createEffect,
+	createSignal,
+	JSX,
+	onCleanup,
+	onMount,
+	Owner,
+	ParentProps,
+	useContext,
+} from "solid-js";
 
 type routedElement = {
-    path: string,
-    scrollY: number,
-    scrollX: number
-}
+	path: string;
+	scrollY: number;
+	scrollX: number;
+};
 
 type CachedElement = {
-    id: string,
-    owner: Owner,
-    children: JSX.Element,
-}
+	id: string;
+	owner: Owner;
+	children: JSX.Element;
+};
 
 type Store = [
-    Accessor<string>,
-    {
-        setRoute: (path: string) => void,
-        getScrollValues: (path: string) => [number, number]
-    }
-]
-
+	Accessor<string>,
+	{
+		setRoute: (path: string) => void;
+		getScrollValues: (path: string) => [number, number];
+	},
+];
 
 const LocalRouterContext = createContext<Store>([
-    () => "",
-    {
-        setRoute: () => void 0,
-        getScrollValues: () => [0, 0] as [number, number]
-    }
+	() => "",
+	{
+		setRoute: () => void 0,
+		getScrollValues: () => [0, 0] as [number, number],
+	},
 ]);
 
 export const LocalRouterProvider = (props: ParentProps) => {
-    const [{ log }] = useLogger();
-    const [currentRoute, setCurrentRoute] = createSignal(window.location.pathname);
-    const [routedElements, setRoutedElements] = createSignal<routedElement[]>([]);
+	const [{ log }] = useLogger();
+	const [currentRoute, setCurrentRoute] = createSignal(
+		window.location.pathname,
+	);
+	const [routedElements, setRoutedElements] = createSignal<routedElement[]>(
+		[],
+	);
 
-    const store: Store = [
-            currentRoute,
-            {
-                setRoute(path: string) {
-                    setRoutedElements((prev) => {
-                        const index = prev.findIndex(item => item.path === currentRoute());
+	onMount(() => {
+		const handlePopState = () => {
+			setCurrentRoute(window.location.pathname);
+		};
 
-                        if (index !== -1) {
-                            prev[index] = {
-                                ...prev[index],
-                                scrollY: window.scrollY,
-                                scrollX: window.scrollX
-                            };
-                        } else {
-                            prev.push({
-                                path: currentRoute(),
-                                scrollY: window.scrollY,
-                                scrollX: window.scrollX
-                            });
-                        }
+		window.addEventListener("popstate", handlePopState);
+		onCleanup(() => window.removeEventListener("popstate", handlePopState));
+	});
 
-                        return [...prev];
-                    })
+	const store: Store = [
+		currentRoute,
+		{
+			setRoute(path: string) {
+				setRoutedElements((prev) => {
+					const index = prev.findIndex(
+						(item) => item.path === currentRoute(),
+					);
+					const newElement = {
+						path: currentRoute(),
+						scrollY: window.scrollY,
+						scrollX: window.scrollX,
+					};
 
-                    window.history.pushState({}, "", path);
-                    setCurrentRoute(path);
-                    log("localRouter.urlChange", "Url changed to: " + path);
-                },
+					if (index !== -1) {
+						return prev.map((item, i) =>
+							i === index ? newElement : item,
+						);
+					} else {
+						return [...prev, newElement];
+					}
+				});
 
-                getScrollValues(path: string) {
-                    const e = routedElements().find(e => e.path === currentRoute());
+				window.history.pushState({}, "", path);
+				setCurrentRoute(path);
+				log("localRouter.urlChange", "Url changed to: " + path);
+			},
 
-                    if (e) {
-                        return [ e.scrollY, e.scrollX ];
-                    } else {
-                        return [0, 0];
-                    }
-                }
-            }
-        ];
+			getScrollValues(path: string) {
+				const e = routedElements().find((e) => e.path === path);
+				return e ? [e.scrollY, e.scrollX] : [0, 0];
+			},
+		},
+	];
 
-
-    return (
-        <LocalRouterContext.Provider value={store}>
-            {props.children}
-        </LocalRouterContext.Provider>
-    )
-}
+	return (
+		<LocalRouterContext.Provider value={store}>
+			{props.children}
+		</LocalRouterContext.Provider>
+	);
+};
 
 export const useLocalRouter = () => {
-    return useContext(LocalRouterContext);
-}
+	return useContext(LocalRouterContext);
+};

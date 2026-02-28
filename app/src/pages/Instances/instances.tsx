@@ -3,132 +3,82 @@ import Card from "uikit/components/Card";
 
 import { useInstancesState } from "lib/instancesManagment";
 import Button from "uikit/components/Button";
-import Dropdown from "uikit/components/Dropdown/dropdown";
-import { Input } from "uikit/components/Input";
-import { ContentStack, FlexBox, VerticalStack, Window } from "uikit/components/Window";
-import { ImageBrowser } from "uikit/widgets/ImageBrowser/imageBrowser";
-import { ProgressDisplay } from "uikit/widgets/ProgressDisplay/progressDisplay";
 import css from "./instances.module.less";
-import { createWindowModel } from "./windowModels/createWindow";
-import { imageBrowserModel } from "./windowModels/imageBrowserModel";
-import { InstanceOptionsWindow } from "widgets/InstanceOptions/instanceOptionsWindow";
-import { instanceOptionsModel } from "./windowModels/instanceOptionsModel";
 import { useTranslatedMessages } from "lib/localization/useMessages";
-
+import { openWindow } from "lib/windowManager/store";
+import { CreateInstanceResult } from "windows/CreateInstance/types";
+import { CreateInstanceWindow } from "windows/CreateInstance/CreateBrowserWindow";
+import {
+	InstanceOptionsProps,
+	InstanceOptionsWindow,
+} from "windows/InstanceOptions/instanceOptionsWindow";
 
 const Page: Component = () => {
-    const [{ getInstances, runInstance, getManifestVersionsMap }] = useInstancesState();
+	const { get } = useTranslatedMessages();
+	const [{ getInstances, runInstance, getManifestVersionsMap }] =
+		useInstancesState();
 
-    const useCreateWindowModel = createWindowModel();
-    const useImageBrowserModel = imageBrowserModel();
-    const useInstanceOptionsModel = instanceOptionsModel();
+	const useCreateWindow = async () => {
+		const result = await openWindow<
+			{ versions: Map<string, string> },
+			CreateInstanceResult
+		>(CreateInstanceWindow, { versions: getManifestVersionsMap() }, {});
 
-    const { get } = useTranslatedMessages();
+		if (result?.created) {
+			console.log("Instance created");
+		}
+	};
 
-    return (
-        <>
-            <ImageBrowser
-                visible={useImageBrowserModel.imageBrowserVisible}
-                setVisible={useImageBrowserModel.setImageBrowserVisible}
-                setImageSrc={useImageBrowserModel.setImageSrc}
-            />
-            <Window
-                visible={useCreateWindowModel.isWindowVisible}
-                setVisible={useCreateWindowModel.setWindowVisible}
-                controlsConfig={useCreateWindowModel.currentButtons}
-                name={get("create_instance")}
-            >
-                <ContentStack
-                    index={useCreateWindowModel.windowIndex}
-                    prevIndex={useCreateWindowModel.prevWindowIndex}
-                >
-                    <VerticalStack>
-                        <FlexBox>
-                            <Card
-                                size="135px"
-                                img={useImageBrowserModel.imageSrc()}
-                            >
-                                <Button secondary onClick={() => useImageBrowserModel.setImageBrowserVisible(true)}>Change</Button>
-                            </Card>
-                            <VerticalStack expand>
-                                <Input
-                                    label={get("name")}
-                                    placeholder={useCreateWindowModel.getNamePlaceholder(get("instance_name"))}
-                                    onInput={(e) =>
-                                        useCreateWindowModel.setStoreValueFromInput(e, "name")
-                                    }
-                                />
-                                <Input
-                                    label={get("tags")}
-                                    placeholder={get("instance_tags")}
-                                />
-                            </VerticalStack>
-                        </FlexBox>
-                        <VerticalStack>
-                            <Dropdown
-                                value={useCreateWindowModel.selectedVersionStore.version}
-                                onChange={useCreateWindowModel.selectVersionId}
-                                label={get("versions")}
-                                placeholder={get("instance_version")}
-                                typeable
-                            >
-                                <For each={[...getManifestVersionsMap().keys()]}>
-                                    {(version) => (
-                                        <Dropdown.Item value={version} searchValue={version}>
-                                            {version}
-                                        </Dropdown.Item>
-                                    )}
-                                </For>
-                            </Dropdown>
-                        </VerticalStack>
-                    </VerticalStack>
-                    <ProgressDisplay
-                        wsMsgs={useCreateWindowModel.getWSMessages}
-                        getMessagesTracked={useCreateWindowModel.getMessagesTracked}
-                        getWSState={useCreateWindowModel.getWSState}
-                    />
-                    <p>section 2</p>
-                    <h1>section 3</h1>
-                </ContentStack>
-            </Window>
-            <InstanceOptionsWindow
-                id={useInstanceOptionsModel.id()}
-                name={useInstanceOptionsModel.name()}
-                windowVisible={useInstanceOptionsModel.windowVisible}
-                setWindowVisible={useInstanceOptionsModel.setWindowVisible}
-                updateName={useInstanceOptionsModel.updateName}
-            />
-            <div class={css.InstancesWrapper}>
-                <div class={css.PageContent}>
-                    <Button secondary onClick={() => useCreateWindowModel.enableCreateWindow()}>{get("create")}</Button>
-                    <div class={css.InstancesContainer}>
-                        <For each={getInstances()}>{(instance, i) =>
-                            <Card
-                                name={instance.name}
-                                description={`${instance.loader} ${instance.version}`}
-                            >
-                                <Button
-                                    class={css["button"]}
-                                    onClick={() => runInstance(instance)}
-                                    secondary
-                                >Play</Button>
-                                <Button
-                                    class={css["button"]}
-                                    onClick={() => {
-                                        useInstanceOptionsModel.setId(instance.id);
-                                        useInstanceOptionsModel.setName(instance.name);
-                                        useInstanceOptionsModel.setWindowVisible(true);
-                                    }}
-                                    secondary
-                                >Options</Button>
-                            </Card>
-                        }
-                        </For>
-                    </div>
-                </div>
-            </div>
-        </>
-    )
-}
+	const useInstanceOptionsWindow = async (id: number) => {
+		await openWindow<InstanceOptionsProps, null>(
+			InstanceOptionsWindow,
+			{
+				id,
+			},
+			{},
+		);
+	};
+
+	return (
+		<>
+			<div class={css.InstancesWrapper}>
+				<div class={css.PageContent}>
+					<Button secondary onClick={() => useCreateWindow()}>
+						{get("create")}
+					</Button>
+					<div class={css.InstancesContainer}>
+						<For each={getInstances()}>
+							{(instance, i) => (
+								<Card
+									name={instance.name}
+									description={`${instance.loader} ${instance.version}`}
+								>
+									<Button
+										class={css["button"]}
+										onClick={() => runInstance(instance)}
+										secondary
+									>
+										Play
+									</Button>
+									<Button
+										class={css["button"]}
+										onClick={() =>
+											useInstanceOptionsWindow(
+												instance.id,
+											)
+										}
+										secondary
+									>
+										Options
+									</Button>
+								</Card>
+							)}
+						</For>
+					</div>
+				</div>
+			</div>
+		</>
+	);
+};
 
 export default Page;
